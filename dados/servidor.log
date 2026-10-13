@@ -1,0 +1,14 @@
+2026/10/13 18:01:54 === SERVIDOR INICIADO ===
+2026/10/13 18:02:55 Novo Passageiro "pass1" cadastrado com senha '123'
+2026/10/13 18:03:03 Novo Motorista "moto1" cadastrado com senha '123'
+2026/10/13 18:03:24 Lista de trechos enviada pelo motorista 'moto1' 
+Paradas 1
+2026/10/13 18:03:36 Novo Motorista "moto2" cadastrado com senha '123'
+2026/10/13 18:04:21 Lista de trechos enviada pelo motorista 'moto2' 
+Paradas 1
+2026/10/13 18:04:35 Tentativa de reserva de rota enviada pelo passageiro pass1: Origem: Feira de Santana, Destino: Simões Filho
+2026/10/13 18:04:39 Reserva de id e504c419-d3cc-4135-b78e-cf20444d4d00 realizada com sucesso para o passageiro 'pass1'
+2026/10/13 18:04:54 Solicitação de remoção de reserva de id: 'e41e1a97-6afc-4d35-a8f8-e9c7108b8e58' , pelo motorista 'moto2'
+2026/10/13 18:04:54 1 reservas de passageiros foram canceladas devido à exclusão da viagem e41e1a97-6afc-4d35-a8f8-e9c7108b8e58
+2026/10/13 18:07:38 Conexão de motorista 'moto1' encerrada no handle com erro: EOF
+2026/10/13 18:07:38 Conexão encerrada no menu principal: EOF

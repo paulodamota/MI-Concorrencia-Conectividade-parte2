@@ -1,0 +1,14 @@
+FROM golang:1.27-alpine AS builder
+WORKDIR /app
+
+COPY go.mod .
+COPY go.sum .
+COPY shared/ ./shared/
+COPY cmd/motorista/ ./cmd/motorista/
+
+RUN go build -o motorista_bin ./cmd/motorista/
+
+FROM alpine:latest
+WORKDIR /app
+COPY --from=builder /app/motorista_bin .
+CMD ["./motorista_bin"]

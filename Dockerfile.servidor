@@ -1,0 +1,16 @@
+FROM golang:1.27-alpine AS builder
+WORKDIR /app
+
+COPY go.mod .
+COPY go.sum .
+#    host      container
+COPY shared/ ./shared/
+COPY cmd/servidor/ ./cmd/servidor/  
+
+RUN go build -o servidor_bin ./cmd/servidor/
+
+FROM alpine:latest
+WORKDIR /app
+COPY --from=builder /app/servidor_bin .
+EXPOSE 6742
+CMD ["./servidor_bin"]

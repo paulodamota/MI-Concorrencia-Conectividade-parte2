@@ -1,0 +1,201 @@
+package main
+
+import (
+	"sync"
+
+	"github.com/google/uuid"
+
+	. "vaijunto/shared"
+)
+
+type GrafoRotas struct {
+	//mapa de string para lista de ponteiros de trecho
+	//terei que iterar por toda a lista de trechos para achar(ou não) o destino
+	//um map[str(orig)]map[str(destino)][]*Trecho acabaria com isso e daria O(1), mai mt trabalho
+	Adjacencias map[string][]*Trecho
+	mu          sync.RWMutex
+}
+
+func NovoGrafo() *GrafoRotas {
+	return &GrafoRotas{
+		Adjacencias: make(map[string][]*Trecho),
+	}
+}
+
+// adiciona viagem de um motorista ao grafo
+func (g *GrafoRotas) AdicionarViagem(user string, viagem *Viagem) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for _, t := range viagem.Trechos {
+		g.Adjacencias[t.Origem] = append(g.Adjacencias[t.Origem], t)
+	}
+}
+
+/*
+BuscarRotas encontra todos os itinerários possíveis entre a origem e o destino
+usando recursividade
+*/
+func (g *GrafoRotas) BuscarRotas(origem string, destino string, data string) []*Viagem {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+
+	var resultados []*Viagem
+	caminhoAtual := []*Trecho{}
+	visitados := make(map[string]bool)
+
+	g.dfsBusca(origem, destino, data, caminhoAtual, visitados, &resultados)
+	return resultados
+}
+
+// busca em profundidade recursivo para achar caminhos compostos
+func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho []*Trecho, visitados map[string]bool, resultados *[]*Viagem) {
+	// caso base salva copia do caminho encontrado
+	if atual == destino {
+		caminhoCopia := make([]*Trecho, len(caminho))
+		copy(caminhoCopia, caminho)
+		*resultados = append(*resultados, &Viagem{Trechos: caminhoCopia})
+		return
+	}
+
+	visitados[atual] = true
+	defer delete(visitados, atual) //permite utilizar a cidade em outros caminhos
+
+	trechosDisponiveis := g.Adjacencias[atual]
+	for _, t := range trechosDisponiveis {
+		// verifica se há vagas disponíveis
+		// e se a cidade de destino foi visitada
+		t.mu.Lock()
+		filtroData := ((data == t.Data) || data == "")
+		vagasDisponiveis := (t.Vagas > 0)
+		t.mu.Unlock()
+
+		if filtroData && vagasDisponiveis && !visitados[t.Destino] {
+			// adiciona o trecho ao caminho
+			caminho = append(caminho, t)
+
+			// continua a busca a partir da próxima cidade
+			g.dfsBusca(t.Destino, destino, data, caminho, visitados, resultados)
+
+			// remove o ultimo trecho para testar outras opções
+			caminho = caminho[:len(caminho)-1]
+		}
+	}
+}
+
+// tenta reservar vagas em trechos
+func (g *GrafoRotas) TentarReservarItinerario(v *Viagem, user string) bool {
+	if len(v.Trechos) == 0 {
+		return false
+	}
+
+	//ordena pra evitar deadlock
+	trechosOrdenados := make([]*Trecho, len(v.Trechos))
+	copy(trechosOrdenados, v.Trechos)
+
+	for i := 0; i < len(trechosOrdenados)-1; i++ {
+		for j := i + 1; j < len(trechosOrdenados); j++ {
+			if trechosOrdenados[i].ID > trechosOrdenados[j].ID {
+				trechosOrdenados[i], trechosOrdenados[j] = trechosOrdenados[j], trechosOrdenados[i]
+			}
+		}
+	}
+
+	//lock em tudo
+	for _, t := range trechosOrdenados {
+		t.mu.Lock()
+	}
+
+	//defer unlock de tudo
+	defer func() {
+		for _, t := range trechosOrdenados {
+			t.mu.Unlock()
+		}
+	}()
+
+	//ve se tem vaga nos trechos
+	//se não tiver já era pai, tchau
+	for _, t := range trechosOrdenados {
+		if t.Vagas <= 0 {
+			return false
+		}
+	}
+
+	//se chegou até aqui tem uma viagem completa
+	//gera id para a viagem encontrada
+	viagemID := uuid.New().String()
+	v.ID = viagemID
+	v.Dono = user
+
+	//adicona o id da viagem a todos os trechos da viagem,
+	//se um dos trechos for cancelado pelo motorista, será possivel cancelar esta viagem
+	for _, t := range trechosOrdenados {
+		t.ReservasAssociadasIDS = append(t.ReservasAssociadasIDS, Par{ID: v.ID, User: user})
+		t.Vagas--
+	}
+
+	return true
+}
+
+// devolve vagas aos trechos, quando o passageiro cancelar uma reserva ou recusar uma oferta de reserva
+func (g *GrafoRotas) LiberarVagas(v *Viagem) {
+	if len(v.Trechos) == 0 {
+		return
+	}
+
+	trechosOrdenados := make([]*Trecho, len(v.Trechos))
+	copy(trechosOrdenados, v.Trechos)
+	for i := 0; i < len(trechosOrdenados)-1; i++ {
+		for j := i + 1; j < len(trechosOrdenados); j++ {
+			if trechosOrdenados[i].ID > trechosOrdenados[j].ID {
+				trechosOrdenados[i], trechosOrdenados[j] = trechosOrdenados[j], trechosOrdenados[i]
+			}
+		}
+	}
+
+	for _, t := range trechosOrdenados {
+		t.mu.Lock()
+	}
+	defer func() {
+		for _, t := range trechosOrdenados {
+			t.mu.Unlock()
+		}
+	}()
+
+	for _, t := range trechosOrdenados {
+		t.Vagas++
+		//removendo o id da lista de id de viagens
+		for i, vID := range t.ReservasAssociadasIDS {
+			if vID.ID == v.ID {
+				t.ReservasAssociadasIDS[i] = t.ReservasAssociadasIDS[len(t.ReservasAssociadasIDS)-1]
+				t.ReservasAssociadasIDS = t.ReservasAssociadasIDS[:len(t.ReservasAssociadasIDS)-1]
+				break
+			}
+		}
+	}
+}
+
+/*
+remove a viagem cadastrada de um motorista, e retorna um slice de ids das viagens afetadas pela deleção
+*/
+func (g *GrafoRotas) RemoverViagemMotorista(viagem *Viagem) []Par {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	var viagensAfetadas []Par
+
+	for _, t := range viagem.Trechos {
+		t.mu.Lock()
+		viagensAfetadas = append(viagensAfetadas, t.ReservasAssociadasIDS...)
+		t.mu.Unlock()
+
+		trechosOrigem := g.Adjacencias[t.Origem]
+		for i, trechoAdjacente := range trechosOrigem {
+			if trechoAdjacente.ID == t.ID {
+				g.Adjacencias[t.Origem] = append(trechosOrigem[:i], trechosOrigem[i+1:]...)
+				break
+			}
+		}
+	}
+
+	return viagensAfetadas
+}
