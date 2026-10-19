@@ -60,64 +60,112 @@ type ViagemData struct {
 	Trechos []TrechoData
 }
 
-/*
-enum para cidades permitidas
-*/
-type Cidade int
+func GetCidade(estado string, numero int) string {
+	switch estado {
+	case "BA":
+		switch numero {
+		case 1:
+			return "Feira de Santana"
+		case 2:
+			return "Salvador"
+		case 3:
+			return "Simões Filho"
+		case 4:
+			return "Xique-Xique"
+		case 5:
+			return "Vitória da Conquista"
+		case 6:
+			return "Camaçari"
+		case 7:
+			return "Juazeiro"
+		case 8:
+			return "Itabuna"
+		case 9:
+			return "Ilhéus"
+		case 10:
+			return "Porto Seguro"
+		default:
+			return "INVALIDA"
+		}
 
-const (
-	Feira Cidade = iota + 1
-	Salvador
-	SimoesFilho
-	Xique
-	Conquista
-	Camacari
-	Juazeiro
-	Itabuna
-	Ilheus
-	PortoSeguro
-	Barreiras
-)
+	case "MG":
+		switch numero {
+		case 1:
+			return "Belo Horizonte"
+		case 2:
+			return "Uberlândia"
+		case 3:
+			return "Juiz de Fora"
+		case 4:
+			return "Ouro Preto"
+		case 5:
+			return "Tiradentes"
+		case 6:
+			return "Diamantina"
+		case 7:
+			return "Caldas"
+		case 8:
+			return "Capitólio"
+		case 9:
+			return "Montes Claros"
+		case 10:
+			return "Ipatinga"
+		default:
+			return "INVALIDA"
+		}
 
-func (c Cidade) GetCidade() string {
-	switch c {
-	case Feira:
-		return "Feira de Santana"
-	case Salvador:
-		return "Salvador"
-	case SimoesFilho:
-		return "Simões Filho"
-	case Xique:
-		return "Xique-Xique"
-	case Conquista:
-		return "Vitória da Conquista"
-	case Camacari:
-		return "Camaçari"
-	case Juazeiro:
-		return "Juazeiro"
-	case Itabuna:
-		return "Itabuna"
-	case Ilheus:
-		return "Ilhéus"
-	case PortoSeguro:
-		return "Porto Seguro"
-	case Barreiras:
-		return "Barreiras"
+	case "SE":
+		switch numero {
+		case 1:
+			return "Aracaju"
+		case 2:
+			return "Nossa Senhora do Socorro"
+		case 3:
+			return "Itabaiana"
+		case 4:
+			return "Lagarto"
+		case 5:
+			return "São Cristóvão"
+		case 6:
+			return "Laranjeiras"
+		case 7:
+			return "Canindé de São Francisco"
+		case 8:
+			return "Estância"
+		case 9:
+			return "Propriá"
+		case 10:
+			return "Tobias Barreto"
+		default:
+			return "INVALIDA"
+		}
+
 	default:
 		return "INVALIDA"
 	}
 }
 
 func ImprimirCidades() {
-	fmt.Printf("%-6s | %s\n", "NÚMERO", "NOME")
-	fmt.Println("--------------------------------")
+	fmt.Printf("%-6s | %-25s | %-25s | %s\n", "NÚMERO", "BA - Bahia", "MG - Minas Gerais", "SE - Sergipe")
+	fmt.Println("-------------------------------------------------------------------------------")
 
 	for i := 1; ; i++ {
-		c := Cidade(i)
-		if c.GetCidade() == "INVALIDA" {
+		ba := GetCidade("BA", i)
+		mg := GetCidade("MG", i)
+		se := GetCidade("SE", i)
+		if ba == "INVALIDA" && mg == "INVALIDA" && se == "INVALIDA" {
 			break
 		}
-		fmt.Printf("%-6d | %s\n", int(c), c.GetCidade())
+		if ba == "INVALIDA" {
+			ba = ""
+		}
+		if mg == "INVALIDA" {
+			mg = ""
+		}
+		if se == "INVALIDA" {
+			se = ""
+		}
+		fmt.Printf("%-6d | %-25s | %-25s | %s\n", i, ba, mg, se)
 	}
 }
 
@@ -210,6 +258,54 @@ func ImprimirReservasEscolha(viagens []ViagemData) {
 		fmt.Println("---------------------------------------------------")
 	}
 	fmt.Println("===================================================")
+}
+
+// recebe uma string como "BA-1" ou "MG, 4" e retorna o estado e o número da cidade.
+func LerCidade(scanner *bufio.Scanner) (string, int) {
+	for {
+		// Limpa espaços e padroniza para maiúsculo
+		fmt.Print("> ")
+		if !scanner.Scan() {
+			return "", -1
+		}
+
+		input := strings.TrimSpace(strings.ToUpper(scanner.Text()))
+
+		if strings.ToLower(input) == "c" {
+			return "", -1
+		}
+
+		if strings.ToLower(input) == "f" {
+			return "", -2
+		}
+
+		//validação
+		parts := strings.Split(input, "#")
+		if len(parts) != 2 {
+			fmt.Println("Erro: formato inválido, use ESTADO#NUMERO (ex: BA#1)")
+			continue
+		}
+
+		estado := strings.TrimSpace(parts[0])
+		numStr := strings.TrimSpace(parts[1])
+
+		numero, err := strconv.Atoi(numStr)
+		if err != nil {
+			fmt.Println("Erro: O valor digitado para cidade não é um número")
+			continue
+		}
+		if GetCidade(estado, numero) == "INVALIDA" {
+			fmt.Println("Erro: Estado ou cidade informada não é válida")
+			continue
+		}
+
+		if estado != "BA" && estado != "MG" && estado != "SE" {
+			fmt.Println("Erro: O estado informado não é válido")
+			continue
+		}
+
+		return estado, numero
+	}
 }
 
 func LerInt(scanner *bufio.Scanner) (int, bool) {

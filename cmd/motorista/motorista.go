@@ -319,20 +319,22 @@ func ConstruirRota(scanner *bufio.Scanner) ([]string, bool) {
 	var paradas []string
 
 	fmt.Println("\n--- Cadastro de Rota ---")
-	fmt.Println("Digite '-1' para finalizar ou 'c' para cancelar.")
+	fmt.Println("Digite 'f' para finalizar ou 'c' para cancelar.")
 
 	fmt.Println("Informe o código da cidade (Origem->Parada->Destino) (minimo de 2 cidades para finalizar) ")
 	for {
 
 		fmt.Printf("\nInforme o código da cidade #%d: ", len(paradas)+1)
 
-		num, cancelado := LerInt(scanner)
+		estado, num := LerCidade(scanner)
 
-		if cancelado {
+		//cancelado
+		if num == -1 {
 			return nil, true
 		}
 
-		if num == -1 {
+		//finalizado
+		if num == -2 {
 			if len(paradas) < 2 {
 				fmt.Println("Erro: Adicione pelo menos duas cidades.")
 				continue
@@ -340,7 +342,7 @@ func ConstruirRota(scanner *bufio.Scanner) ([]string, bool) {
 			break
 		}
 
-		cidade := Cidade(num).GetCidade()
+		cidade := GetCidade(estado, num)
 		if cidade == "INVALIDA" {
 			fmt.Println("Erro: O código informado não corresponde a nenhuma cidade válida.")
 			continue

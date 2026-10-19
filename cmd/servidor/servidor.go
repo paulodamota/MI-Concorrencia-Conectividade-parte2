@@ -3,8 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
+	"net/http"
+	"os"
+	"strings"
 	"sync"
 	"time"
 	. "vaijunto/shared"
@@ -21,9 +25,45 @@ var (
 
 	ViagensMoto = NovoViagens()
 	ViagensPass = NovoViagens()
+
+	servidor string
+	endereco string
+	portas   []string
 )
 
+func GetPorta(n string) []string {
+	switch n {
+	//primeira porta para socket tcp (comunicação com clientes usuarios)
+	//segunda porta para http
+	case "1": //sergipe
+		return []string{"2800", "2828"}
+	case "2": //bahia
+		return []string{"2900", "2929"}
+	case "3": //minas gerais
+		return []string{"3100", "3131"}
+	default:
+		return nil
+	}
+}
+
 func main() {
+	servidor = strings.TrimSpace(os.Getenv("servidor"))
+	if servidor == "" {
+		fmt.Print("\nPorta de servidor não especificada!\n")
+		return
+	}
+
+	endereco = os.Getenv("endereco")
+	if endereco == "" {
+		fmt.Print("\nEndereco ip não especificado!\n")
+		return
+	}
+
+	portas = GetPorta(servidor)
+	if portas == nil {
+		fmt.Print("\nPorta inválida!\n")
+		return
+	}
 
 	//carrega os dados salvos
 	Carregar()
@@ -33,15 +73,16 @@ func main() {
 		for {
 			time.Sleep(10 * time.Second)
 			Salvar()
-			fmt.Printf("\t[BackUp!]")
+			//fmt.Printf("\t[BackUp!]")
 		}
 	}()
 
 	//configura para salvar os logs em arquivos
 	ConfigurarLogs()
 
-	//configurando a conexão
-	port := "0.0.0.0:6742"
+	IniciarServidorREST()
+	//configurando a conexão de usuário
+	port := "0.0.0.0:" + portas[0]
 	listener, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("Erro ao iniciar servidor TCP: %v", err)
@@ -154,4 +195,65 @@ func handleConnection(conn net.Conn) {
 		}
 
 	}
+}
+
+func IniciarServidorREST() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /buscar/{origem}/{destino}/{data}", handleBusca)
+	mux.HandleFunc("POST /reservar/{origem}/{destino}/{data}", handleBusca)
+	mux.HandleFunc("GET /ping/{texto}", handlePing)
+
+	go func() {
+		enderecoPorta := ":" + portas[1]
+
+		log.Printf("##### Servidor [REST] instância '%s' a iniciar na porta %s... #####\n", servidor, enderecoPorta)
+
+		go func() {
+			time.Sleep(5 * time.Second)
+			mensagemParaTodosServidores("ping", "!Mensagem de teste!", servidor)
+		}()
+
+		//bloqueante
+		if err := http.ListenAndServe(enderecoPorta, mux); err != nil {
+			fmt.Printf("MORREU")
+			log.Fatalf("Erro no servidor REST: %v", err)
+		}
+	}()
+}
+
+func mensagemParaTodosServidores(comando string, mensagem string, remetente string) {
+	switch remetente {
+	case "1":
+		mensagemParaServidor(comando, mensagem, GetPorta("2")[1])
+		mensagemParaServidor(comando, mensagem, GetPorta("3")[1])
+	case "2":
+		mensagemParaServidor(comando, mensagem, GetPorta("1")[1])
+		mensagemParaServidor(comando, mensagem, GetPorta("3")[1])
+	case "3":
+		mensagemParaServidor(comando, mensagem, GetPorta("1")[1])
+		mensagemParaServidor(comando, mensagem, GetPorta("2")[1])
+	default:
+		log.Printf("Servidor não reconhecido: %s", remetente)
+	}
+}
+
+func mensagemParaServidor(comando string, mensagem string, portaDestinatario string) {
+
+	url := "http://" + endereco + ":" + portaDestinatario + "/" + comando + "/" + mensagem
+
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Printf("[REST] Erro ao fazer requisição HTTP para %s: %v", portaDestinatario, err)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[REST] Erro ao ler resposta de %s: %v", portaDestinatario, err)
+		return
+	}
+
+	fmt.Printf("[REST] Status recebido do servidor de porta %s: %s\n", portaDestinatario, resp.Status)
+	fmt.Printf("[REST] Corpo recebido do servidor de porta %s: %s\n", portaDestinatario, string(body))
 }

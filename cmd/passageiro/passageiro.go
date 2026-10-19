@@ -442,13 +442,13 @@ func ConstruirRota(scanner *bufio.Scanner) ([]string, bool) {
 			fmt.Printf("\nInforme o código da cidade de destino: ")
 		}
 
-		num, cancelado := LerInt(scanner)
+		estado, num := LerCidade(scanner)
 
-		if cancelado {
+		if num == -1 {
 			return nil, true
 		}
 
-		cidade := Cidade(num).GetCidade()
+		cidade := GetCidade(estado, num)
 		if cidade == "INVALIDA" {
 			fmt.Println("Erro: O código informado não corresponde a nenhuma cidade válida.")
 			continue
