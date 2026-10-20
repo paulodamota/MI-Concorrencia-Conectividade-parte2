@@ -34,7 +34,7 @@ func MotoristaConn(encoder *json.Encoder, decoder *json.Decoder, user string) {
 				//todos os trechos são criados aqui
 				log.Printf("Lista de trechos enviada pelo motorista '%s' \nParadas %d", user, len(req.Trechos))
 
-				viagem := TrechoDataSliceToViagem(req.Trechos, user)
+				viagem := TrechoDataSliceToViagem(req.Trechos, user, true)
 
 				grafo.AdicionarViagem(user, &viagem)
 

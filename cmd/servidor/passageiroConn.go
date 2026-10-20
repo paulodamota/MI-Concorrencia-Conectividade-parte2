@@ -146,19 +146,20 @@ func PassageiroConn(encoder *json.Encoder, decoder *json.Decoder, user string) {
 /*
 loop para tratar a escoha da reserva do passageiro
 */
-func loopEscolhareserva(itinerarios []*Viagem, user string, encoder *json.Encoder, decoder *json.Decoder, req *Request, res *Resposta) error {
+func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.Encoder, decoder *json.Decoder, req *Request, res *Resposta) error {
 	var encerrar_loop bool
 	for _, i := range itinerarios {
 		var trecho_pre_reservado []ViagemData
 
-		reservado := grafo.TentarReservarItinerario(i, user)
+		//os ids das viagens são criados aqui
+		reservado := grafo.TentarReservarItinerario(i, user) //mudança necessaria para trechos entre servidores
 
 		if !reservado {
 			continue
 		}
 
 		//++++++++++constroi e envia a resposta+++++++
-		trecho_pre_reservado = append(trecho_pre_reservado, i.ToViagemData())
+		trecho_pre_reservado = append(trecho_pre_reservado, *i)
 		*res = Resposta{
 			Status:  "SUCESSO",
 			Message: "Busca de rota realizada com sucesso",

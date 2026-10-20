@@ -41,7 +41,7 @@ type TrechoData struct {
 	Preco     float64 `json:"preco"`
 	Data      string  `json:"data"`
 	Horario   string  `json:"horario"`
-	Servidor  string  `json:"servidor"`
+	Servidor  int     `json:"servidor"`
 
 	ViagensAssociadasIDS []Par `json:"par"`
 }

@@ -35,7 +35,7 @@ type Trecho struct {
 	Preco     float64
 	Data      string
 	Horario   string
-	Servidor  string
+	Servidor  int
 
 	// viagens de passageiros que usam esse trecho
 	ReservasAssociadasIDS []Par //ids das viagens associadas
@@ -67,8 +67,13 @@ func (t *Trecho) ToTrechoData() TrechoData {
 /*
 transforma TrechoData em um Trecho
 */
-func ToTrecho(t *TrechoData) Trecho {
-	id := uuid.New().String()
+func ToTrecho(t *TrechoData, novoID bool) Trecho {
+	var id string
+	if novoID {
+		id = uuid.New().String()
+	} else {
+		id = t.ID
+	}
 	return Trecho{
 		ID:        id,
 		Motorista: t.Motorista,
@@ -78,25 +83,23 @@ func ToTrecho(t *TrechoData) Trecho {
 		Preco:     t.Preco,
 		Data:      t.Data,
 		Horario:   t.Horario,
-		Servidor:  servidor, //atribui aqui o identificador unico do servidor a cada trecho criado,
+		Servidor:  servidor, //atribui aqui o identificador unico do servidor a cada trecho criado
 		//permitindo identificar a qual servidor o trecho pertence, mesmo nos
 		// cadastro de reservas de outros servidores
 	}
 }
 
-// transforma um slice de trecho data em um slice de Trecho para ser guardado no grafo
-// quer um nome de funcao mais auto descritivo que esse?
 /*
 transforma um slice de trechodata em um objeto Viagem
 usado após o cliente motorista construir a rota de trechos,
 permitindo salvar no map e grafo
 */
-func TrechoDataSliceToViagem(tds []TrechoData, dono string) Viagem {
+func TrechoDataSliceToViagem(tds []TrechoData, dono string, novosIDs bool) Viagem {
 	var viagem []*Trecho
 	viagemid := uuid.New().String()
 
 	for _, td := range tds {
-		trecho := ToTrecho(&td)
+		trecho := ToTrecho(&td, novosIDs)
 		trecho.ViagemID = viagemid
 		viagem = append(viagem, &trecho)
 	}

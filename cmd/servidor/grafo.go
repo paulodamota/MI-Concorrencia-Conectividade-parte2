@@ -36,43 +36,54 @@ func (g *GrafoRotas) AdicionarViagem(user string, viagem *Viagem) {
 BuscarRotas encontra todos os itinerários possíveis entre a origem e o destino
 usando recursividade
 */
-func (g *GrafoRotas) BuscarRotas(origem string, destino string, data string) []*Viagem {
+func (g *GrafoRotas) BuscarRotas(origem string, destino string, data string) []*ViagemData {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	var resultados []*Viagem
-	caminhoAtual := []*Trecho{}
+	var resultados []*ViagemData
+	caminhoAtual := []TrechoData{}
 	visitados := make(map[string]bool)
 
 	g.dfsBusca(origem, destino, data, caminhoAtual, visitados, &resultados)
 	return resultados
 }
 
+// estou mudando a busca para trabalhar com slice de trechodata em vez de slice de ponteiro de trecho
 // busca em profundidade recursivo para achar caminhos compostos
-func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho []*Trecho, visitados map[string]bool, resultados *[]*Viagem) {
+func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho []TrechoData, visitados map[string]bool, resultados *[]*ViagemData) {
 	// caso base salva copia do caminho encontrado
 	if atual == destino {
-		caminhoCopia := make([]*Trecho, len(caminho))
+		caminhoCopia := make([]TrechoData, len(caminho))
 		copy(caminhoCopia, caminho)
-		*resultados = append(*resultados, &Viagem{Trechos: caminhoCopia})
+		*resultados = append(*resultados, &ViagemData{Trechos: caminhoCopia})
 		return
 	}
 
 	visitados[atual] = true
 	defer delete(visitados, atual) //permite utilizar a cidade em outros caminhos
 
-	trechosDisponiveis := g.Adjacencias[atual]
+	trechosDisponiveis := TrechoSliceToTrechoDataSlice(g.Adjacencias[atual])
+
 	trechosServidorB, err := ComandoParaServidor("/adjacencias/", atual, GetPorta(GetVizinho(1))[1]) //e agora jose?
 	if err != nil {
 		log.Printf("[GRAFO] Erro ao buscar adjacências do servidor %d: %v", (servidor+1)%3+1, err)
+	} else {
+		trechosDisponiveis = append(trechosDisponiveis, trechosServidorB.Adjacencias...)
 	}
+
+	trechosServidorC, err := ComandoParaServidor("/adjacencias/", atual, GetPorta(GetVizinho(2))[1]) //e agora jose?
+	if err != nil {
+		log.Printf("[GRAFO] Erro ao buscar adjacências do servidor %d: %v", (servidor+1)%3+1, err)
+	} else {
+		trechosDisponiveis = append(trechosDisponiveis, trechosServidorC.Adjacencias...)
+	}
+
 	for _, t := range trechosDisponiveis {
 		// verifica se há vagas disponíveis
 		// e se a cidade de destino foi visitada
-		t.mu.Lock()
+
 		filtroData := ((data == t.Data) || data == "")
 		vagasDisponiveis := (t.Vagas > 0)
-		t.mu.Unlock()
 
 		if filtroData && vagasDisponiveis && !visitados[t.Destino] {
 			// adiciona o trecho ao caminho
@@ -88,13 +99,13 @@ func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho
 }
 
 // tenta reservar vagas em trechos
-func (g *GrafoRotas) TentarReservarItinerario(v *Viagem, user string) bool {
+func (g *GrafoRotas) TentarReservarItinerario(v *ViagemData, user string) bool {
 	if len(v.Trechos) == 0 {
 		return false
 	}
 
 	//ordena pra evitar deadlock
-	trechosOrdenados := make([]*Trecho, len(v.Trechos))
+	trechosOrdenados := make([]TrechoData, len(v.Trechos))
 	copy(trechosOrdenados, v.Trechos)
 
 	for i := 0; i < len(trechosOrdenados)-1; i++ {
@@ -107,6 +118,7 @@ func (g *GrafoRotas) TentarReservarItinerario(v *Viagem, user string) bool {
 
 	//lock em tudo
 	for _, t := range trechosOrdenados {
+		ComandoParaServidor()
 		t.mu.Lock()
 	}
 
