@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"sync"
 
 	"github.com/google/uuid"
@@ -61,6 +62,10 @@ func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho
 	defer delete(visitados, atual) //permite utilizar a cidade em outros caminhos
 
 	trechosDisponiveis := g.Adjacencias[atual]
+	trechosServidorB, err := ComandoParaServidor("/adjacencias/", atual, GetPorta(GetVizinho(1))[1]) //e agora jose?
+	if err != nil {
+		log.Printf("[GRAFO] Erro ao buscar adjacências do servidor %d: %v", (servidor+1)%3+1, err)
+	}
 	for _, t := range trechosDisponiveis {
 		// verifica se há vagas disponíveis
 		// e se a cidade de destino foi visitada
@@ -198,4 +203,14 @@ func (g *GrafoRotas) RemoverViagemMotorista(viagem *Viagem) []Par {
 	}
 
 	return viagensAfetadas
+}
+
+//GRAFO funções relacionadas a api rest
+
+func (g *GrafoRotas) GetAdjacencias(origem string) []TrechoData {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	trechos := g.Adjacencias[origem]
+	return TrechoSliceToTrechoDataSlice(trechos)
 }

@@ -31,6 +31,7 @@ func MotoristaConn(encoder *json.Encoder, decoder *json.Decoder, user string) {
 		switch req.Acao {
 		case "CADASTRAR_ROTA":
 			{
+				//todos os trechos são criados aqui
 				log.Printf("Lista de trechos enviada pelo motorista '%s' \nParadas %d", user, len(req.Trechos))
 
 				viagem := TrechoDataSliceToViagem(req.Trechos, user)

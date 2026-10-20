@@ -3,11 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net"
-	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -23,32 +22,56 @@ var (
 
 	grafo = NovoGrafo()
 
+	//estrutura com mutex e mapa de viagens
 	ViagensMoto = NovoViagens()
+	//estrutura com mutex e mapa de viagens
 	ViagensPass = NovoViagens()
 
-	servidor string
+	//identificador desse servidor
+	servidor int
+	//endereço IP dos outros servidores, precisa ser substituido por um pra cada servidor!
 	endereco string
-	portas   []string
+	//portas desse servidor, [0]: porta TCP; [1]: porta HTTP
+	portas []string
 )
 
-func GetPorta(n string) []string {
-	switch n {
+func GetPorta(serv int) []string {
+	switch serv {
 	//primeira porta para socket tcp (comunicação com clientes usuarios)
 	//segunda porta para http
-	case "1": //sergipe
+	case 1: //sergipe
 		return []string{"2800", "2828"}
-	case "2": //bahia
+	case 2: //bahia
 		return []string{"2900", "2929"}
-	case "3": //minas gerais
+	case 3: //minas gerais
 		return []string{"3100", "3131"}
 	default:
 		return nil
 	}
 }
 
+var tabelaVizinhos = [][]int{
+	{},        // Índice 0 (ignorado)
+	{0, 2, 3}, // Servidor 1 -> vizinho 1 retorna 2, vizinho 2 retorna 3
+	{0, 3, 1}, // Servidor 2 -> vizinho 1 retorna 3, vizinho 2 retorna 1
+	{0, 2, 1}, // Servidor 3 -> vizinho 1 retorna 2, vizinho 2 retorna 1
+}
+
+func GetVizinho(vizinho int) int {
+	if servidor <= 0 || servidor >= len(tabelaVizinhos) {
+		return 0
+	}
+	if vizinho <= 0 || vizinho >= len(tabelaVizinhos[servidor]) {
+		return 0
+	}
+
+	return tabelaVizinhos[servidor][vizinho]
+}
+
 func main() {
-	servidor = strings.TrimSpace(os.Getenv("servidor"))
-	if servidor == "" {
+	var err error
+	servidor, err = strconv.Atoi(strings.TrimSpace(os.Getenv("servidor")))
+	if err != nil || servidor == 0 {
 		fmt.Print("\nPorta de servidor não especificada!\n")
 		return
 	}
@@ -195,65 +218,4 @@ func handleConnection(conn net.Conn) {
 		}
 
 	}
-}
-
-func IniciarServidorREST() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /buscar/{origem}/{destino}/{data}", handleBusca)
-	mux.HandleFunc("POST /reservar/{origem}/{destino}/{data}", handleBusca)
-	mux.HandleFunc("GET /ping/{texto}", handlePing)
-
-	go func() {
-		enderecoPorta := ":" + portas[1]
-
-		log.Printf("##### Servidor [REST] instância '%s' a iniciar na porta %s... #####\n", servidor, enderecoPorta)
-
-		go func() {
-			time.Sleep(5 * time.Second)
-			mensagemParaTodosServidores("ping", "!Mensagem de teste!", servidor)
-		}()
-
-		//bloqueante
-		if err := http.ListenAndServe(enderecoPorta, mux); err != nil {
-			fmt.Printf("MORREU")
-			log.Fatalf("Erro no servidor REST: %v", err)
-		}
-	}()
-}
-
-func mensagemParaTodosServidores(comando string, mensagem string, remetente string) {
-	switch remetente {
-	case "1":
-		mensagemParaServidor(comando, mensagem, GetPorta("2")[1])
-		mensagemParaServidor(comando, mensagem, GetPorta("3")[1])
-	case "2":
-		mensagemParaServidor(comando, mensagem, GetPorta("1")[1])
-		mensagemParaServidor(comando, mensagem, GetPorta("3")[1])
-	case "3":
-		mensagemParaServidor(comando, mensagem, GetPorta("1")[1])
-		mensagemParaServidor(comando, mensagem, GetPorta("2")[1])
-	default:
-		log.Printf("Servidor não reconhecido: %s", remetente)
-	}
-}
-
-func mensagemParaServidor(comando string, mensagem string, portaDestinatario string) {
-
-	url := "http://" + endereco + ":" + portaDestinatario + "/" + comando + "/" + mensagem
-
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Printf("[REST] Erro ao fazer requisição HTTP para %s: %v", portaDestinatario, err)
-		return
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Printf("[REST] Erro ao ler resposta de %s: %v", portaDestinatario, err)
-		return
-	}
-
-	fmt.Printf("[REST] Status recebido do servidor de porta %s: %s\n", portaDestinatario, resp.Status)
-	fmt.Printf("[REST] Corpo recebido do servidor de porta %s: %s\n", portaDestinatario, string(body))
 }

@@ -33,8 +33,9 @@ type Trecho struct {
 	Destino   string
 	Vagas     int
 	Preco     float64
-	Data      string `json:"data"`
-	Horario   string `json:"horario"`
+	Data      string
+	Horario   string
+	Servidor  string
 
 	// viagens de passageiros que usam esse trecho
 	ReservasAssociadasIDS []Par //ids das viagens associadas
@@ -58,6 +59,7 @@ func (t *Trecho) ToTrechoData() TrechoData {
 		Preco:                t.Preco,
 		Data:                 t.Data,
 		Horario:              t.Horario,
+		Servidor:             t.Servidor,
 		ViagensAssociadasIDS: t.ReservasAssociadasIDS,
 	}
 }
@@ -76,6 +78,9 @@ func ToTrecho(t *TrechoData) Trecho {
 		Preco:     t.Preco,
 		Data:      t.Data,
 		Horario:   t.Horario,
+		Servidor:  servidor, //atribui aqui o identificador unico do servidor a cada trecho criado,
+		//permitindo identificar a qual servidor o trecho pertence, mesmo nos
+		// cadastro de reservas de outros servidores
 	}
 }
 
@@ -152,4 +157,13 @@ func NovoViagens() *MapaViagens {
 
 func InicializarViagensByUser() map[string]*Viagem {
 	return make(map[string]*Viagem)
+}
+
+func TrechoSliceToTrechoDataSlice(trechos []*Trecho) []TrechoData {
+	var tds []TrechoData
+	for _, t := range trechos {
+		td := t.ToTrechoData()
+		tds = append(tds, td)
+	}
+	return tds
 }

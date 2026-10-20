@@ -1,14 +1,4 @@
-2026/10/19 20:36:02 [API REST] Servidor da instância '1' a iniciar na porta :2828...
-2026/10/19 20:36:02 === SERVIDOR INICIADO ===
-2026/10/19 20:36:07 Erro ao fazer requisição HTTP para !Mensagem de teste!: parse "http://192.168.15.111:!Mensagem de teste!/ping/1": invalid port ":!Mensagem de teste!" after host
-2026/10/19 20:38:54 [API REST] Servidor da instância '1' a iniciar na porta :2828...
-2026/10/19 20:38:54 === SERVIDOR INICIADO ===
-2026/10/19 20:38:59 Erro ao fazer requisição HTTP para !Mensagem de teste!: parse "http://192.168.15.111:!Mensagem de teste!/ping/1": invalid port ":!Mensagem de teste!" after host
-2026/10/19 20:41:58 [API REST] Servidor da instância '1' a iniciar na porta :2828...
-2026/10/19 20:41:58 === SERVIDOR INICIADO ===
-2026/10/19 20:42:03 [REST] Ping recebido com o texto: !Mensagem de teste!
-2026/10/19 20:42:05 Erro ao fazer requisição HTTP para 3131: Get "http://192.168.15.111:3131/ping/%21Mensagem%20de%20teste%21": dial tcp 192.168.15.111:3131: connect: connection refused
-2026/10/19 20:56:52 ##### Servidor [REST] instância '1' a iniciar na porta :2828... #####
-2026/10/19 20:56:52 === SERVIDOR INICIADO ===
-2026/10/19 20:56:58 [REST] Ping recebido com o texto: !Mensagem de teste!
-2026/10/19 20:57:01 [REST] Ping recebido com o texto: !Mensagem de teste!
+2026/10/20 00:00:55 ##### Servidor [REST] instância '1' a iniciar na porta :2828... #####
+2026/10/20 00:00:55 === SERVIDOR INICIADO ===
+2026/10/20 00:01:02 [REST] Ping recebido com o texto: !Mensagem de teste!
+2026/10/20 00:01:04 [REST] Ping recebido com o texto: !Mensagem de teste!
