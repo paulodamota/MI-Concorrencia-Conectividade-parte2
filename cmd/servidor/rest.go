@@ -4,25 +4,46 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	. "vaijunto/shared"
 )
 
+type Transacoes struct {
+	mu sync.Mutex
+
+	//ID da transacao -> chaves de Trechos que fazem parte da transacao
+	TrechosDaTransacao map[string][]TrechoChaves
+
+	/*
+		Chave do Trecho -> id da transacao
+		permite saber se um trecho está em transacao, por exemplo
+		caso um motorista cancele a viagem durante a transacao de reserva
+	*/
+	TransacaoDoTrecho map[TrechoChaves]string
+}
+
 //funções da api rest para comunicação entre servidores
 
-type RespostaHttp struct {
-	Adjacencias []TrechoData `json:"adjacencias,omitempty"`
+type PacoteHttp struct {
+	Trechos     []TrechoData `json:"trechos,omitempty"`
+	TransacaoID string       `json:"transacaoid,omitempty"`
+	Reserva     ReservaChave `json:"passageiro,omitempty"`
+
+	Voto bool `json:"voto,omitempty"`
 }
 
 func IniciarServidorREST() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /adjacencias/{cidade}", handleGetAdjacencias)
+	mux.HandleFunc("POST /reserva/prepare", handlePostReservaPrepare)
+	mux.HandleFunc("POST /reserva/commit", handlePostReservaCommit)
 
 	go func() {
 		enderecoPorta := ":" + portas[1]
 
-		log.Printf("##### Servidor [REST] instância '%s' a iniciar na porta %s... #####\n", servidor, enderecoPorta)
+		log.Printf("##### Servidor [REST] instância '%d' a iniciar na porta %s... #####\n", servidor, enderecoPorta)
 
 		go func() {
 			time.Sleep(5 * time.Second)
@@ -43,29 +64,13 @@ func handleGetAdjacencias(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(RespostaHttp{Adjacencias: adjacencias})
-}
-
-func GetAdjacenciasTodosServidores(comando string, mensagem string) {
-	switch servidor {
-	case 1:
-		ComandoParaServidor(comando, mensagem, GetPorta(2)[1])
-		ComandoParaServidor(comando, mensagem, GetPorta(3)[1])
-	case 2:
-		ComandoParaServidor(comando, mensagem, GetPorta(1)[1])
-		ComandoParaServidor(comando, mensagem, GetPorta(3)[1])
-	case 3:
-		ComandoParaServidor(comando, mensagem, GetPorta(1)[1])
-		ComandoParaServidor(comando, mensagem, GetPorta(2)[1])
-	default:
-		log.Printf("Servidor não reconhecido: %d", servidor)
-	}
+	json.NewEncoder(w).Encode(PacoteHttp{Trechos: adjacencias})
 }
 
 // get apenas por agora
-func ComandoParaServidor(comando string, mensagem string, portaDestinatario string) (*RespostaHttp, error) {
+func ComandoParaServidor(comando string, mensagem string, portaDestinatario string) (*PacoteHttp, error) {
 
-	url := "http://" + endereco + ":" + portaDestinatario + comando + mensagem
+	url := GetURLHTTP(servidor) + comando + mensagem
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -73,7 +78,7 @@ func ComandoParaServidor(comando string, mensagem string, portaDestinatario stri
 		return nil, err
 	}
 
-	var resposta RespostaHttp
+	var resposta PacoteHttp
 	err = json.NewDecoder(resp.Body).Decode(&resposta)
 	defer resp.Body.Close()
 	if err != nil {
@@ -82,5 +87,3 @@ func ComandoParaServidor(comando string, mensagem string, portaDestinatario stri
 	}
 	return &resposta, nil
 }
-
-//não aguento mais esse pbl socorro meu deus que problema chato

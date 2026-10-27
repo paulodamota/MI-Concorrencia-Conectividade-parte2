@@ -72,23 +72,24 @@ func MotoristaConn(encoder *json.Encoder, decoder *json.Decoder, user string) {
 
 				if len(viagensPassageirosAfetadas) > 0 {
 
-					ViagensPass.mu.Lock()
+					ReservasPass.mu.Lock()
 					for _, viagemAfetada := range viagensPassageirosAfetadas {
 						passageiroAfetado := viagemAfetada.User
 
 						passAfet, _ := Passageiros.Load(passageiroAfetado)
 
-						msg := fmt.Sprintf("Sua reserva de ID '%s' foi cancelada pois um de seus motorista cancelou a viagem!\n Em breve você receberá reemboloso de sua reserva. Agradecemos a compreensão!\n", viagemAfetada.ID)
+						msg := fmt.Sprintf("Sua reserva de ID '%s' foi cancelada pois um de seus motorista cancelou a viagem!\n Em breve você receberá reemboloso de sua reserva. Agradecemos a compreensão!\n", viagemAfetada.ReservaID)
 						if !slices.Contains(passAfet.(*Usuario).Notificacoes, msg) {
 							passAfet.(*Usuario).AdicionarNotificacao(msg)
 						}
 
-						reservas := ViagensPass.Viagens[passageiroAfetado]
-						grafo.LiberarVagas(reservas[viagemAfetada.ID]) //devolvendo vagas para cada trecho da vaga antes de remover
-						delete(reservas, viagemAfetada.ID)
+						reservas := ReservasPass.Reservas[passageiroAfetado]
+						//To DO Remover Reservas usando 2pc
+						//grafo.LiberarVagas(reservas[viagemAfetada.ReservaID]) //devolvendo vagas para cada trecho da vaga antes de remover
+						delete(reservas, viagemAfetada.ReservaID)
 					}
 				}
-				ViagensPass.mu.Unlock()
+				ReservasPass.mu.Unlock()
 
 				log.Printf("%d reservas de passageiros foram canceladas devido à exclusão da viagem %s", len(viagensPassageirosAfetadas), req.ID)
 

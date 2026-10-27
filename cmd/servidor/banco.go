@@ -5,13 +5,15 @@ import (
 	"io"
 	"log"
 	"os"
+
+	. "vaijunto/shared"
 )
 
 type BancoData struct {
-	Motoristas  map[string]*Usuario           `json:"motoristas"`
-	Passageiros map[string]*Usuario           `json:"passageiros"`
-	ViagensMoto map[string]map[string]*Viagem `json:"viagens_moto"`
-	ViagensPass map[string]map[string]*Viagem `json:"viagens_pass"`
+	Motoristas   map[string]*Usuario               `json:"motoristas"`
+	Passageiros  map[string]*Usuario               `json:"passageiros"`
+	ViagensMoto  map[string]map[string]*Viagem     `json:"viagens_moto"`
+	ReservasPass map[string]map[string]*ViagemData `json:"reservas_pass"`
 }
 
 // caminho do arquivo
@@ -27,8 +29,8 @@ func Salvar() {
 		Passageiros: make(map[string]*Usuario),
 
 		//já copia viagens
-		ViagensMoto: ViagensMoto.Viagens,
-		ViagensPass: ViagensPass.Viagens,
+		ViagensMoto:  ViagensMoto.Viagens,
+		ReservasPass: ReservasPass.Reservas,
 	}
 
 	// salva motoristas e passageiros
@@ -91,9 +93,9 @@ func Carregar() {
 	ViagensMoto.Viagens = dados.ViagensMoto
 	ViagensMoto.mu.Unlock()
 
-	ViagensPass.mu.Lock()
-	ViagensPass.Viagens = dados.ViagensPass
-	ViagensPass.mu.Unlock()
+	ReservasPass.mu.Lock()
+	ReservasPass.Reservas = dados.ReservasPass
+	ReservasPass.mu.Unlock()
 
 	// renconstruindo grado
 	for userMotorista, viagens := range ViagensMoto.Viagens {

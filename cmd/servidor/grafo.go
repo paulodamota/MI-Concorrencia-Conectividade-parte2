@@ -4,8 +4,6 @@ import (
 	"log"
 	"sync"
 
-	"github.com/google/uuid"
-
 	. "vaijunto/shared"
 )
 
@@ -64,18 +62,18 @@ func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho
 
 	trechosDisponiveis := TrechoSliceToTrechoDataSlice(g.Adjacencias[atual])
 
-	trechosServidorB, err := ComandoParaServidor("/adjacencias/", atual, GetPorta(GetVizinho(1))[1]) //e agora jose?
+	trechosServidorB, err := ComandoParaServidor("/adjacencias/", atual, GetPorta(GetVizinho(1))[1])
 	if err != nil {
-		log.Printf("[GRAFO] Erro ao buscar adjacências do servidor %d: %v", (servidor+1)%3+1, err)
+		log.Printf("[GRAFO] Erro ao buscar adjacências do servidor %d: %v", GetVizinho(1), err)
 	} else {
-		trechosDisponiveis = append(trechosDisponiveis, trechosServidorB.Adjacencias...)
+		trechosDisponiveis = append(trechosDisponiveis, trechosServidorB.Trechos...)
 	}
 
-	trechosServidorC, err := ComandoParaServidor("/adjacencias/", atual, GetPorta(GetVizinho(2))[1]) //e agora jose?
+	trechosServidorC, err := ComandoParaServidor("/adjacencias/", atual, GetPorta(GetVizinho(2))[1])
 	if err != nil {
-		log.Printf("[GRAFO] Erro ao buscar adjacências do servidor %d: %v", (servidor+1)%3+1, err)
+		log.Printf("[GRAFO] Erro ao buscar adjacências do servidor %d: %v", GetVizinho(2), err)
 	} else {
-		trechosDisponiveis = append(trechosDisponiveis, trechosServidorC.Adjacencias...)
+		trechosDisponiveis = append(trechosDisponiveis, trechosServidorC.Trechos...)
 	}
 
 	for _, t := range trechosDisponiveis {
@@ -92,65 +90,14 @@ func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho
 			// continua a busca a partir da próxima cidade
 			g.dfsBusca(t.Destino, destino, data, caminho, visitados, resultados)
 
+			if 1 <= len(*resultados) {
+				return
+			}
+
 			// remove o ultimo trecho para testar outras opções
 			caminho = caminho[:len(caminho)-1]
 		}
 	}
-}
-
-// tenta reservar vagas em trechos
-func (g *GrafoRotas) TentarReservarItinerario(v *ViagemData, user string) bool {
-	if len(v.Trechos) == 0 {
-		return false
-	}
-
-	//ordena pra evitar deadlock
-	trechosOrdenados := make([]TrechoData, len(v.Trechos))
-	copy(trechosOrdenados, v.Trechos)
-
-	for i := 0; i < len(trechosOrdenados)-1; i++ {
-		for j := i + 1; j < len(trechosOrdenados); j++ {
-			if trechosOrdenados[i].ID > trechosOrdenados[j].ID {
-				trechosOrdenados[i], trechosOrdenados[j] = trechosOrdenados[j], trechosOrdenados[i]
-			}
-		}
-	}
-
-	//lock em tudo
-	for _, t := range trechosOrdenados {
-		ComandoParaServidor()
-		t.mu.Lock()
-	}
-
-	//defer unlock de tudo
-	defer func() {
-		for _, t := range trechosOrdenados {
-			t.mu.Unlock()
-		}
-	}()
-
-	//ve se tem vaga nos trechos
-	//se não tiver já era pai, tchau
-	for _, t := range trechosOrdenados {
-		if t.Vagas <= 0 {
-			return false
-		}
-	}
-
-	//se chegou até aqui tem uma viagem completa
-	//gera id para a viagem encontrada
-	viagemID := uuid.New().String()
-	v.ID = viagemID
-	v.Dono = user
-
-	//adicona o id da viagem a todos os trechos da viagem,
-	//se um dos trechos for cancelado pelo motorista, será possivel cancelar esta viagem
-	for _, t := range trechosOrdenados {
-		t.ReservasAssociadasIDS = append(t.ReservasAssociadasIDS, Par{ID: v.ID, User: user})
-		t.Vagas--
-	}
-
-	return true
 }
 
 // devolve vagas aos trechos, quando o passageiro cancelar uma reserva ou recusar uma oferta de reserva
@@ -182,7 +129,7 @@ func (g *GrafoRotas) LiberarVagas(v *Viagem) {
 		t.Vagas++
 		//removendo o id da lista de id de viagens
 		for i, vID := range t.ReservasAssociadasIDS {
-			if vID.ID == v.ID {
+			if vID.ReservaID == v.ID {
 				t.ReservasAssociadasIDS[i] = t.ReservasAssociadasIDS[len(t.ReservasAssociadasIDS)-1]
 				t.ReservasAssociadasIDS = t.ReservasAssociadasIDS[:len(t.ReservasAssociadasIDS)-1]
 				break
@@ -194,11 +141,11 @@ func (g *GrafoRotas) LiberarVagas(v *Viagem) {
 /*
 remove a viagem cadastrada de um motorista, e retorna um slice de ids das viagens afetadas pela deleção
 */
-func (g *GrafoRotas) RemoverViagemMotorista(viagem *Viagem) []Par {
+func (g *GrafoRotas) RemoverViagemMotorista(viagem *Viagem) []ReservaChave {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	var viagensAfetadas []Par
+	var viagensAfetadas []ReservaChave
 
 	for _, t := range viagem.Trechos {
 		t.mu.Lock()

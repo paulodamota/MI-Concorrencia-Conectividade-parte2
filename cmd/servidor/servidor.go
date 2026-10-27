@@ -24,15 +24,26 @@ var (
 
 	//estrutura com mutex e mapa de viagens
 	ViagensMoto = NovoViagens()
-	//estrutura com mutex e mapa de viagens
-	ViagensPass = NovoViagens()
+	//estrutura com mutex e mapa de reservas
+	ReservasPass = NovoReservas()
 
 	//identificador desse servidor
 	servidor int
 	//endereço IP dos outros servidores, precisa ser substituido por um pra cada servidor!
-	endereco string
+	endereco1 string
+	endereco2 string
+	endereco3 string
 	//portas desse servidor, [0]: porta TCP; [1]: porta HTTP
 	portas []string
+
+	transacoes Transacoes
+
+	//urls dos servidores
+	participantes = []string{
+		GetURLHTTP(1),
+		GetURLHTTP(2),
+		GetURLHTTP(3),
+	}
 )
 
 func GetPorta(serv int) []string {
@@ -68,6 +79,19 @@ func GetVizinho(vizinho int) int {
 	return tabelaVizinhos[servidor][vizinho]
 }
 
+func GetURLHTTP(serv int) string {
+	switch serv {
+	case 1: //sergipe
+		return "http://" + endereco1 + ":" + GetPorta(serv)[1]
+	case 2: //bahia
+		return "http://" + endereco2 + ":" + GetPorta(serv)[1]
+	case 3: //minas gerais
+		return "http://" + endereco3 + ":" + GetPorta(serv)[1]
+	default:
+		return ""
+	}
+}
+
 func main() {
 	var err error
 	servidor, err = strconv.Atoi(strings.TrimSpace(os.Getenv("servidor")))
@@ -76,9 +100,19 @@ func main() {
 		return
 	}
 
-	endereco = os.Getenv("endereco")
-	if endereco == "" {
-		fmt.Print("\nEndereco ip não especificado!\n")
+	endereco1 = os.Getenv("endereco1")
+	if endereco1 == "" {
+		fmt.Print("\nEndereco ip 1 não especificado!\n")
+		return
+	}
+	endereco2 = os.Getenv("endereco2")
+	if endereco2 == "" {
+		fmt.Print("\nEndereco ip 2 não especificado!\n")
+		return
+	}
+	endereco3 = os.Getenv("endereco3")
+	if endereco3 == "" {
+		fmt.Print("\nEndereco ip 3 não especificado!\n")
 		return
 	}
 
@@ -180,7 +214,7 @@ func handleConnection(conn net.Conn) {
 			res = Cadastrar(req, &Passageiros)
 
 			if res.Status == "SUCESSO" {
-				ViagensPass.Viagens[req.Nome] = InicializarViagensByUser()
+				ReservasPass.Reservas[req.Nome] = InicializarReservasByUser()
 				log.Printf("Novo Passageiro \"%s\" cadastrado com senha '%s'", req.Nome, req.Senha)
 				userHandler = func() { PassageiroConn(encoder, decoder, req.Nome) }
 			}

@@ -32,9 +32,9 @@ type Resposta struct {
 Structs para construir pacotes de resposta e request
 */
 type TrechoData struct {
+	ID        string  `json:"id"`
 	ViagemID  string  `json:"viagemid"`
 	Motorista string  `json:"motorista"`
-	ID        string  `json:"id"`
 	Origem    string  `json:"origem"`
 	Destino   string  `json:"destino"`
 	Vagas     int     `json:"vagas"`
@@ -43,21 +43,22 @@ type TrechoData struct {
 	Horario   string  `json:"horario"`
 	Servidor  int     `json:"servidor"`
 
-	ViagensAssociadasIDS []Par `json:"par"`
+	ViagensAssociadasIDS []ReservaChave `json:"viagensAssociadasids"`
 }
 
 /*
 usado no pacote e nos trechos para rastrear mais facilmente usarios afetados por deleção de viagem de um motorista
 */
-type Par struct {
-	ID   string
-	User string
+type ReservaChave struct {
+	ReservaID string `json:"id"`
+	User      string `json:"user"`
+	Servidor  int    `json:"servidor"`
 }
 
 type ViagemData struct {
-	ID      string
-	Dono    string
-	Trechos []TrechoData
+	ID      string       `json:"id"`
+	Dono    string       `json:"dono"`
+	Trechos []TrechoData `json:"trechos"`
 }
 
 func GetCidade(estado string, numero int) string {

@@ -21,6 +21,16 @@ type Viagem struct {
 }
 
 /*
+chaves de acesso a um trecho (ou viagem) no mapa de viagens
+(tanto de motoristas quanto de passageiros)
+*/
+type TrechoChaves struct {
+	UserName string
+	ViagemID string
+	ID       string
+}
+
+/*
 trecho, usado para construir viagens e reservas bem como montar o grafo
 armazena tambem os ids de reservas de passageiros que usam esse trecho,
 permitindo facil rastreabilidade
@@ -38,7 +48,7 @@ type Trecho struct {
 	Servidor  int
 
 	// viagens de passageiros que usam esse trecho
-	ReservasAssociadasIDS []Par //ids das viagens associadas
+	ReservasAssociadasIDS []ReservaChave //ids das viagens associadas
 
 	mu sync.Mutex
 }
@@ -132,12 +142,25 @@ func (v *Viagem) ToViagemData() ViagemData {
 
 /*
 usado para permitir enviar pacote de dados ao cliente
-ao listar reservas e viagens para clientes
+ao listar viagens para clientes
 */
 func ViagemMapToViagemDataSlice(vs map[string]*Viagem) []ViagemData {
 	var vds []ViagemData
 	for _, v := range vs {
 		vd := v.ToViagemData()
+		vds = append(vds, vd)
+	}
+	return vds
+}
+
+/*
+usado para permitir enviar pacote de dados ao cliente
+ao listar reservas para clientes
+*/
+func ViagemDataMapToViagemDataSlice(vs map[string]*ViagemData) []ViagemData {
+	var vds []ViagemData
+	for _, v := range vs {
+		vd := *v
 		vds = append(vds, vd)
 	}
 	return vds
@@ -169,4 +192,23 @@ func TrechoSliceToTrechoDataSlice(trechos []*Trecho) []TrechoData {
 		tds = append(tds, td)
 	}
 	return tds
+}
+
+/*
+mapa de reservas associadas a passageiros
+*/
+type MapaReservas struct {
+	mu sync.Mutex
+	//nome do passageiro-> ID da reserva-> Pointer da viagem
+	Reservas map[string]map[string]*ViagemData
+}
+
+func NovoReservas() *MapaReservas {
+	return &MapaReservas{
+		Reservas: make(map[string]map[string]*ViagemData),
+	}
+}
+
+func InicializarReservasByUser() map[string]*ViagemData {
+	return make(map[string]*ViagemData)
 }
