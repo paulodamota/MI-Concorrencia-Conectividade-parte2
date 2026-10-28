@@ -36,14 +36,10 @@ var (
 	//portas desse servidor, [0]: porta TCP; [1]: porta HTTP
 	portas []string
 
-	transacoes Transacoes
+	transacoes = InicializarTransacoes()
 
 	//urls dos servidores
-	participantes = []string{
-		GetURLHTTP(1),
-		GetURLHTTP(2),
-		GetURLHTTP(3),
-	}
+	participantes []string
 )
 
 func GetPorta(serv int) []string {
@@ -114,6 +110,12 @@ func main() {
 	if endereco3 == "" {
 		fmt.Print("\nEndereco ip 3 não especificado!\n")
 		return
+	}
+
+	participantes = []string{
+		GetURLHTTP(1),
+		GetURLHTTP(2),
+		GetURLHTTP(3),
 	}
 
 	portas = GetPorta(servidor)
@@ -192,9 +194,11 @@ func handleConnection(conn net.Conn) {
 			res = Cadastrar(req, &Motoristas)
 
 			if res.Status == "SUCESSO" {
+
 				ViagensMoto.mu.Lock()
 				ViagensMoto.Viagens[req.Nome] = InicializarViagensByUser()
 				ViagensMoto.mu.Unlock()
+
 				log.Printf("Novo Motorista \"%s\" cadastrado com senha '%s'", req.Nome, req.Senha)
 				userHandler = func() { MotoristaConn(encoder, decoder, req.Nome) }
 			}
@@ -203,9 +207,7 @@ func handleConnection(conn net.Conn) {
 			res = Login(req, &Motoristas)
 
 			if res.Status == "SUCESSO" {
-
 				log.Printf("Motorista \"%s\" fez login", req.Nome)
-
 				userHandler = func() { MotoristaConn(encoder, decoder, req.Nome) }
 			}
 
@@ -214,7 +216,11 @@ func handleConnection(conn net.Conn) {
 			res = Cadastrar(req, &Passageiros)
 
 			if res.Status == "SUCESSO" {
+
+				ReservasPass.mu.Lock()
 				ReservasPass.Reservas[req.Nome] = InicializarReservasByUser()
+				ReservasPass.mu.Unlock()
+
 				log.Printf("Novo Passageiro \"%s\" cadastrado com senha '%s'", req.Nome, req.Senha)
 				userHandler = func() { PassageiroConn(encoder, decoder, req.Nome) }
 			}

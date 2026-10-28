@@ -62,14 +62,14 @@ func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho
 
 	trechosDisponiveis := TrechoSliceToTrechoDataSlice(g.Adjacencias[atual])
 
-	trechosServidorB, err := ComandoParaServidor("/adjacencias/", atual, GetPorta(GetVizinho(1))[1])
+	trechosServidorB, err := ComandoParaServidor("/adjacencias/", atual, GetVizinho(1))
 	if err != nil {
 		log.Printf("[GRAFO] Erro ao buscar adjacências do servidor %d: %v", GetVizinho(1), err)
 	} else {
 		trechosDisponiveis = append(trechosDisponiveis, trechosServidorB.Trechos...)
 	}
 
-	trechosServidorC, err := ComandoParaServidor("/adjacencias/", atual, GetPorta(GetVizinho(2))[1])
+	trechosServidorC, err := ComandoParaServidor("/adjacencias/", atual, GetVizinho(2))
 	if err != nil {
 		log.Printf("[GRAFO] Erro ao buscar adjacências do servidor %d: %v", GetVizinho(2), err)
 	} else {
@@ -80,7 +80,7 @@ func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho
 		// verifica se há vagas disponíveis
 		// e se a cidade de destino foi visitada
 
-		filtroData := ((data == t.Data) || data == "")
+		filtroData := (data == "" || data == t.Data)
 		vagasDisponiveis := (t.Vagas > 0)
 
 		if filtroData && vagasDisponiveis && !visitados[t.Destino] {
@@ -90,7 +90,7 @@ func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho
 			// continua a busca a partir da próxima cidade
 			g.dfsBusca(t.Destino, destino, data, caminho, visitados, resultados)
 
-			if 1 <= len(*resultados) {
+			if len(*resultados) > 0 {
 				return
 			}
 

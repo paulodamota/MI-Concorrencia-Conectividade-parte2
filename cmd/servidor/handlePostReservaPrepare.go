@@ -7,12 +7,14 @@ import (
 )
 
 func handlePostReservaPrepare(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[HANDLE RESERVA PREPARE] 1")
 	//trata erro de leitura
 	var req PacoteHttp
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	log.Printf("[HANDLE RESERVA PREPARE] 2")
 
 	//constroi as chaves de trechos
 	trechosChaves := make([]TrechoChaves, len(req.Trechos))
@@ -58,11 +60,14 @@ func handlePostReservaPrepare(w http.ResponseWriter, r *http.Request) {
 				viagem.mu.Unlock()
 				w.WriteHeader(http.StatusConflict)
 				json.NewEncoder(w).Encode(PacoteHttp{Voto: false})
+				log.Printf("[HANDLE RESERVA PREPARE] 3")
+
 				return
 			}
 		}
 		viagem.mu.Unlock()
 	}
+	log.Printf("[HANDLE RESERVA PREPARE] 4")
 
 	//insere as chaves dos trechos como valor do ID da transacao no mapa
 	transacoes.TrechosDaTransacao[req.TransacaoID] = trechosChaves

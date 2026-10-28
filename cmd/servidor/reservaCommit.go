@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"net/http"
 
 	. "vaijunto/shared"
 )
@@ -20,6 +19,6 @@ func ReservaCommit(transacaoID string, passageiro string) {
 		},
 	})
 	for _, url := range participantes {
-		go http.Post(url+"/reserva/commit", "application/json", bytes.NewBuffer(body))
+		go cliente.Post(url+"/reserva/commit", "application/json", bytes.NewBuffer(body))
 	}
 }

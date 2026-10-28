@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"sync"
 
@@ -12,33 +13,45 @@ import (
 )
 
 // tenta reservar vagas em trechos
-func (g *GrafoRotas) ReservarViagem(viagemData *ViagemData) (string, bool) {
+func (g *GrafoRotas) ReservaPrepare(viagemData *ViagemData) (string, bool) {
+
+	log.Printf("[RESERVA PREPARE] 1")
+
 	if len(viagemData.Trechos) == 0 {
 		return "", false
 	}
 
 	transacaoID := uuid.New().String()
 
-	//fazer essa separação já ao montar ViagemData?
-	var trechosDoServidor_1 []TrechoData
-	var trechosDoServidor_2 []TrechoData
-	var trechosDoServidor_3 []TrechoData
+	trechos := make([][]TrechoData, 3)
 
 	for _, trechoData := range viagemData.Trechos {
 		switch trechoData.Servidor {
 		case 1:
-			trechosDoServidor_1 = append(trechosDoServidor_1, trechoData)
+			trechos[0] = append(trechos[0], trechoData)
+			log.Printf("[RESERVA PREPARE] 2, requisicao para servidor 1")
 		case 2:
-			trechosDoServidor_2 = append(trechosDoServidor_2, trechoData)
+			trechos[1] = append(trechos[1], trechoData)
+			log.Printf("[RESERVA PREPARE] 3, requisicao para servidor 2")
 		case 3:
-			trechosDoServidor_3 = append(trechosDoServidor_3, trechoData)
+			trechos[2] = append(trechos[2], trechoData)
+			log.Printf("[RESERVA PREPARE] 4, requisicao para servidor 3")
 		}
 	}
+
+	requisicoes := 0
+	for _, servidor := range trechos {
+		if len(servidor) > 0 {
+			requisicoes++
+		}
+	}
+
+	log.Printf("[RESERVA PREPARE] 5, requisicoes: %d", requisicoes)
 
 	var wg sync.WaitGroup
 
 	//++[ ENVIO DE PREPARE ]++
-	votos := make(chan bool, len(participantes))
+	votos := make(chan bool, requisicoes)
 
 	for i, url := range participantes {
 
@@ -46,13 +59,17 @@ func (g *GrafoRotas) ReservarViagem(viagemData *ViagemData) (string, bool) {
 		req.TransacaoID = transacaoID
 
 		//construindo requisicao com os trechos desejados
-		switch i + 1 {
+		switch i {
+		case 0:
+			req.Trechos = trechos[0]
 		case 1:
-			req.Trechos = trechosDoServidor_1
+			req.Trechos = trechos[1]
 		case 2:
-			req.Trechos = trechosDoServidor_2
-		case 3:
-			req.Trechos = trechosDoServidor_3
+			req.Trechos = trechos[2]
+		}
+
+		if req.Trechos == nil {
+			continue
 		}
 
 		wg.Add(1)
@@ -62,7 +79,8 @@ func (g *GrafoRotas) ReservarViagem(viagemData *ViagemData) (string, bool) {
 
 			body, _ := json.Marshal(req)
 
-			respostaHttp, err := http.Post(url+"/reserva/prepare", "application/json", bytes.NewBuffer(body))
+			respostaHttp, err := cliente.Post(url+"/reserva/prepare", "application/json", bytes.NewBuffer(body))
+			log.Printf("[RESERVA PREPARE] 5.5, erro: %v", err)
 			if err != nil || respostaHttp.StatusCode != http.StatusOK {
 				votos <- false //se deu erro, voto é não, cancela tudo
 				return
@@ -79,12 +97,14 @@ func (g *GrafoRotas) ReservarViagem(viagemData *ViagemData) (string, bool) {
 
 	//apuracao de votos
 	commit := true
-	for i := 0; i < len(participantes); i++ {
+	for i := 0; i < requisicoes; i++ {
 		vote := <-votos
 		if !vote {
 			commit = false
 		}
 	}
+
+	log.Printf("[RESERVA PREPARE] 6, commit: %t", commit)
 
 	return transacaoID, commit
 

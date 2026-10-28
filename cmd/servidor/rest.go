@@ -24,6 +24,13 @@ type Transacoes struct {
 	TransacaoDoTrecho map[TrechoChaves]string
 }
 
+func InicializarTransacoes() *Transacoes {
+	return &Transacoes{
+		TrechosDaTransacao: make(map[string][]TrechoChaves),
+		TransacaoDoTrecho:  make(map[TrechoChaves]string),
+	}
+}
+
 //funções da api rest para comunicação entre servidores
 
 type PacoteHttp struct {
@@ -34,11 +41,22 @@ type PacoteHttp struct {
 	Voto bool `json:"voto,omitempty"`
 }
 
+var (
+	// cliente HTTP para fazer requisições com timeout
+	cliente *http.Client
+)
+
 func IniciarServidorREST() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /adjacencias/{cidade}", handleGetAdjacencias)
 	mux.HandleFunc("POST /reserva/prepare", handlePostReservaPrepare)
 	mux.HandleFunc("POST /reserva/commit", handlePostReservaCommit)
+
+	//ao enviar requisição, espera por 2 segundas
+	//não havendo resposta retorna erro
+	cliente = &http.Client{
+		Timeout: 2 * time.Second,
+	}
 
 	go func() {
 		enderecoPorta := ":" + portas[1]
@@ -57,8 +75,14 @@ func IniciarServidorREST() {
 }
 
 func handleGetAdjacencias(w http.ResponseWriter, r *http.Request) {
+
 	cidade := r.PathValue("cidade")
+
+	log.Printf("Requisição recebida para a cidade: %s", cidade)
+
 	adjacencias := grafo.GetAdjacencias(cidade)
+
+	log.Printf("Adjacencias para %s: %v", cidade, adjacencias)
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -68,13 +92,15 @@ func handleGetAdjacencias(w http.ResponseWriter, r *http.Request) {
 }
 
 // get apenas por agora
-func ComandoParaServidor(comando string, mensagem string, portaDestinatario string) (*PacoteHttp, error) {
+func ComandoParaServidor(comando string, mensagem string, Destinatario int) (*PacoteHttp, error) {
 
-	url := GetURLHTTP(servidor) + comando + mensagem
+	url := GetURLHTTP(Destinatario) + comando + mensagem
 
-	resp, err := http.Get(url)
+	log.Printf("\n url: %s", url)
+
+	resp, err := cliente.Get(url)
 	if err != nil {
-		log.Printf("[REST] Erro ao fazer requisição HTTP para %s: %v", portaDestinatario, err)
+		log.Printf("[REST] Erro ao fazer requisição HTTP para %d: %v", Destinatario, err)
 		return nil, err
 	}
 
@@ -82,7 +108,7 @@ func ComandoParaServidor(comando string, mensagem string, portaDestinatario stri
 	err = json.NewDecoder(resp.Body).Decode(&resposta)
 	defer resp.Body.Close()
 	if err != nil {
-		log.Printf("[REST] Erro ao ler resposta de %s: %v", portaDestinatario, err)
+		log.Printf("[REST] Erro ao ler resposta de %d: %v", Destinatario, err)
 		return nil, err
 	}
 	return &resposta, nil

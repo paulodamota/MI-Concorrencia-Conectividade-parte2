@@ -29,6 +29,8 @@ func PassageiroConn(encoder *json.Encoder, decoder *json.Decoder, user string) {
 
 				itinerarios := grafo.BuscarRotas(req.Origem, req.Destino, req.Data)
 
+				log.Printf("Voltou da busca! \n %d \n %v", len(itinerarios), *itinerarios[0])
+
 				//caso não haja rotas
 				if len(itinerarios) == 0 {
 					res = Resposta{
@@ -147,16 +149,21 @@ func PassageiroConn(encoder *json.Encoder, decoder *json.Decoder, user string) {
 loop para tratar a escoha da reserva do passageiro
 */
 func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.Encoder, decoder *json.Decoder, req *Request, res *Resposta) error {
+
+	log.Printf("Ola esperando usuario escolher")
+
 	var encerrar_loop bool
 	for _, i := range itinerarios {
 		var trecho_preparado ViagemData
 
-		transacaoID, disponivel := grafo.ReservarViagem(i) //mudança necessaria para trechos entre servidores
+		transacaoID, disponivel := grafo.ReservaPrepare(i) //mudança necessaria para trechos entre servidores
 
 		if !disponivel {
 			ReservaAbort(transacaoID)
 			continue
 		}
+
+		log.Printf("Ola esperando usuario decidir sobre rota preparada")
 
 		//++++++++++constroi e envia a resposta+++++++
 		trecho_preparado = *i
