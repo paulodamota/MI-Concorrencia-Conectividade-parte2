@@ -221,3 +221,124 @@
 2026/10/28 21:33:23 [RESERVA PREPARE] 6, commit: true
 2026/10/28 21:33:23 Ola esperando usuario decidir sobre rota preparada
 2026/10/28 21:33:30 Reserva de id 5b6c156d-e34b-4325-92e6-3895a086c541 realizada com sucesso para o passageiro 'pass'
+2026/10/28 22:59:11 ##### Servidor [REST] instância '1' a iniciar na porta :2828... #####
+2026/10/28 22:59:11 === SERVIDOR INICIADO ===
+2026/10/28 23:06:35 Passageiro "pass" fez login
+2026/10/28 23:06:46 Tentativa de reserva de rota enviada pelo passageiro pass: Origem: Feira de Santana, Destino: Uberlândia
+2026/10/28 23:06:46 
+ url: http://192.168.15.111:2929/adjacencias/Feira de Santana
+2026/10/28 23:06:46 
+ url: http://192.168.15.111:3131/adjacencias/Feira de Santana
+2026/10/28 23:06:48 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/28 23:06:48 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/28 23:06:48 Voltou da busca! 
+ 1 
+ {  [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 1 10 12-12-2027 agora 2 [{5b6c156d-e34b-4325-92e6-3895a086c541 pass 1}]}] [false true false]}
+2026/10/28 23:06:48 Ola esperando usuario escolher
+2026/10/28 23:06:48 [RESERVA PREPARE] 1
+2026/10/28 23:06:48 [RESERVA PREPARE] 3, requisicao para servidor 2
+2026/10/28 23:06:48 [RESERVA PREPARE] 5, requisicoes: 1
+2026/10/28 23:06:48 [RESERVA PREPARE] 5.5, erro: <nil>
+2026/10/28 23:06:48 [RESERVA PREPARE] 6, commit: true
+2026/10/28 23:06:48 [PASS CON ESCOLHA RESERVA] servidores participantes: [false true false]
+2026/10/28 23:06:48 Ola esperando usuario decidir sobre rota preparada
+2026/10/28 23:17:21 Conexão de passageiro 'pass' encerrada no handle com erro: EOF
+2026/10/28 23:17:21 Conexão encerrada no menu principal: EOF
+2026/10/28 23:17:52 ##### Servidor [REST] instância '1' a iniciar na porta :2828... #####
+2026/10/28 23:17:52 === SERVIDOR INICIADO ===
+2026/10/28 23:21:35 Passageiro "pass" fez login
+2026/10/28 23:21:42 Tentativa de reserva de rota enviada pelo passageiro pass: Origem: Feira de Santana, Destino: Uberlândia
+2026/10/28 23:21:42 
+ url: http://192.168.15.111:2929/adjacencias/Feira de Santana
+2026/10/28 23:21:42 
+ url: http://192.168.15.111:3131/adjacencias/Feira de Santana
+2026/10/28 23:21:44 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/28 23:21:44 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/28 23:21:44 Voltou da busca! 
+ 1 
+ {  [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 1 10 12-12-2027 agora 2 [{5b6c156d-e34b-4325-92e6-3895a086c541 pass 1}]}] [false true false]}
+2026/10/28 23:21:44 Ola esperando usuario escolher
+2026/10/28 23:21:44 [RESERVA PREPARE] 1
+2026/10/28 23:21:44 [RESERVA PREPARE] 3, requisicao para servidor 2
+2026/10/28 23:21:44 [RESERVA PREPARE] 5, requisicoes: 1
+2026/10/28 23:21:44 [RESERVA PREPARE] 6, commit: true
+2026/10/28 23:21:44 [PASS CON ESCOLHA RESERVA] servidores participantes: [false true false]
+2026/10/28 23:21:44 Ola esperando usuario decidir sobre rota preparada
+2026/10/28 23:21:54 Enviando abort da transação a08640fc-c292-4ea6-9d98-d01588feea83, para o servidor 2
+2026/10/28 23:24:28 ##### Servidor [REST] instância '1' a iniciar na porta :2828... #####
+2026/10/28 23:24:28 === SERVIDOR INICIADO ===
+2026/10/28 23:25:36 Passageiro "pass" fez login
+2026/10/28 23:25:50 Tentativa de reserva de rota enviada pelo passageiro pass: Origem: Feira de Santana, Destino: Uberlândia
+2026/10/28 23:25:50 
+ url: http://192.168.15.111:2929/adjacencias/Feira de Santana
+2026/10/28 23:25:50 
+ url: http://192.168.15.111:3131/adjacencias/Feira de Santana
+2026/10/28 23:25:52 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/28 23:25:52 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/28 23:25:52 Voltou da busca! 
+ 1 
+ {  [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 1 10 12-12-2027 agora 2 [{5b6c156d-e34b-4325-92e6-3895a086c541 pass 1}]}] [false true false]}
+2026/10/28 23:25:52 Ola esperando usuario escolher
+2026/10/28 23:25:52 [RESERVA PREPARE] 1
+2026/10/28 23:25:52 [RESERVA PREPARE] 3, requisicao para servidor 2
+2026/10/28 23:25:52 [RESERVA PREPARE] 5, requisicoes: 1
+2026/10/28 23:25:52 [RESERVA PREPARE] 6, commit: true
+2026/10/28 23:25:52 [PASS CON ESCOLHA RESERVA] servidores participantes: [false true false]
+2026/10/28 23:25:52 Ola esperando usuario decidir sobre rota preparada
+2026/10/28 23:26:02 Enviando abort da transação b8af705c-38b3-4642-8d9d-7a258ba101eb, para o servidor 2
+2026/10/28 23:26:50 Tentativa de reserva de rota enviada pelo passageiro pass: Origem: Feira de Santana, Destino: Uberlândia
+2026/10/28 23:26:50 
+ url: http://192.168.15.111:2929/adjacencias/Feira de Santana
+2026/10/28 23:26:50 
+ url: http://192.168.15.111:3131/adjacencias/Feira de Santana
+2026/10/28 23:26:52 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/28 23:26:52 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/28 23:26:52 Voltou da busca! 
+ 1 
+ {  [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 1 10 12-12-2027 agora 2 [{5b6c156d-e34b-4325-92e6-3895a086c541 pass 1}]}] [false true false]}
+2026/10/28 23:26:52 Ola esperando usuario escolher
+2026/10/28 23:26:52 [RESERVA PREPARE] 1
+2026/10/28 23:26:52 [RESERVA PREPARE] 3, requisicao para servidor 2
+2026/10/28 23:26:52 [RESERVA PREPARE] 5, requisicoes: 1
+2026/10/28 23:26:52 [RESERVA PREPARE] 6, commit: true
+2026/10/28 23:26:52 [PASS CON ESCOLHA RESERVA] servidores participantes: [false true false]
+2026/10/28 23:26:52 Ola esperando usuario decidir sobre rota preparada
+2026/10/28 23:26:54 Reserva de id 1693a87f-a9bd-4b6f-997d-7f78d9a3f6c9 realizada com sucesso para o passageiro 'pass'
+2026/10/28 23:57:26 ##### Servidor [REST] instância '1' a iniciar na porta :2828... #####
+2026/10/28 23:57:26 === SERVIDOR INICIADO ===
+2026/10/28 23:57:58 Passageiro "pass" fez login
+2026/10/28 23:58:07 Tentativa de reserva de rota enviada pelo passageiro pass: Origem: Feira de Santana, Destino: Uberlândia
+2026/10/28 23:58:07 
+ url: http://192.168.15.111:2929/adjacencias/Feira de Santana
+2026/10/28 23:58:07 
+ url: http://192.168.15.111:3131/adjacencias/Feira de Santana
+2026/10/28 23:58:09 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/28 23:58:09 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/28 23:58:49 ##### Servidor [REST] instância '1' a iniciar na porta :2828... #####
+2026/10/28 23:58:49 === SERVIDOR INICIADO ===
+2026/10/29 00:00:24 Passageiro "pass" fez login
+2026/10/29 00:00:45 Tentativa de reserva de rota enviada pelo passageiro pass: Origem: Nossa Senhora do Socorro, Destino: Feira de Santana
+2026/10/29 00:00:45 
+ url: http://192.168.15.111:2929/adjacencias/Nossa Senhora do Socorro
+2026/10/29 00:00:45 
+ url: http://192.168.15.111:3131/adjacencias/Nossa Senhora do Socorro
+2026/10/29 00:00:47 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Nossa%20Senhora%20do%20Socorro": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/29 00:00:47 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Nossa%20Senhora%20do%20Socorro": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/29 00:00:47 Voltou da busca! 
+ 1 
+ {  [{fe5378a4-150e-4865-a18c-ea770c47f0ac d1731e8b-b59f-451c-a070-8479020ca486 moto Nossa Senhora do Socorro Feira de Santana 1 20 12-12-1212 12 2 []}] [false true false]}
+2026/10/29 00:00:47 Ola esperando usuario escolher
+2026/10/29 00:00:47 [RESERVA PREPARE] 1
+2026/10/29 00:00:47 [RESERVA PREPARE] 3, requisicao para servidor 2
+2026/10/29 00:00:47 [RESERVA PREPARE] 5, requisicoes: 1
+2026/10/29 00:00:47 [RESERVA PREPARE] 6, commit: true
+2026/10/29 00:00:47 [PASS CON ESCOLHA RESERVA] servidores participantes: [false true false]
+2026/10/29 00:00:47 Ola esperando usuario decidir sobre rota preparada
+2026/10/29 00:00:57 Enviando abort da transação 65c7f875-f3f4-4727-a753-cd266f298f08, para o servidor 2
+2026/10/29 01:33:44 ##### Servidor [REST] instância '1' a iniciar na porta :2828... #####
+2026/10/29 01:33:44 === SERVIDOR INICIADO ===
+2026/10/29 01:34:53 Passageiro "pass" fez login
+2026/10/29 01:35:18 Solicitação de remoção de reserva de id: 1693a87f-a9bd-4b6f-997d-7f78d9a3f6c9 , pelo passageiro pass
+2026/10/29 01:35:18 Reserva 1693a87f-a9bd-4b6f-997d-7f78d9a3f6c9 do passageiro 'pass' removida (transação d3c25724-8125-402f-b783-301091ba3eef)
+2026/10/29 01:35:59 Solicitação de remoção de reserva de id: 5b6c156d-e34b-4325-92e6-3895a086c541 , pelo passageiro pass
+2026/10/29 01:35:59 Reserva 5b6c156d-e34b-4325-92e6-3895a086c541 do passageiro 'pass' removida (transação eda4a574-fd3c-4e63-9dc4-4576ddfb465f)

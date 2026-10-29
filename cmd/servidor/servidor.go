@@ -38,8 +38,8 @@ var (
 
 	transacoes = InicializarTransacoes()
 
-	//urls dos servidores
-	participantes []string
+	//urls dos urlsDosServidores
+	urlsDosServidores []string
 )
 
 func GetPorta(serv int) []string {
@@ -112,7 +112,7 @@ func main() {
 		return
 	}
 
-	participantes = []string{
+	urlsDosServidores = []string{
 		GetURLHTTP(1),
 		GetURLHTTP(2),
 		GetURLHTTP(3),

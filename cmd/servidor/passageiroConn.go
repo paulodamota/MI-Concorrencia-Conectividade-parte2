@@ -51,31 +51,12 @@ func PassageiroConn(encoder *json.Encoder, decoder *json.Decoder, user string) {
 			{
 				log.Printf("Solicitação de remoção de reserva de id: %s , pelo passageiro %s", req.ID, user)
 
-				ReservasPass.mu.Lock()
-				//talvez devesse ter um if aqui ?
-				//para garantir que existe map e viagem
-				viagens := ReservasPass.Reservas[user]
-				paraRemover, existe := viagens[req.ID]
-				if existe {
-					delete(viagens, req.ID)
-				}
-				ReservasPass.mu.Unlock()
-
-				if !existe || paraRemover == nil {
-					res = Resposta{
-						Status:  "ERRO",
-						Message: "Reserva não encontrada.",
-					}
+				ok, msg := RemoverReserva2PC(user, req.ID)
+				if !ok {
+					res = Resposta{Status: "FALHA", Message: msg}
 					break
 				}
-
-				//TO DO Remover reserva usando 2pc
-
-				res = Resposta{
-					Status:  "SUCESSO",
-					Message: "Reserva removida com sucesso",
-				}
-
+				res = Resposta{Status: "SUCESSO", Message: msg}
 			}
 
 		case "LISTAR_RESERVAS":
@@ -149,17 +130,18 @@ func PassageiroConn(encoder *json.Encoder, decoder *json.Decoder, user string) {
 loop para tratar a escoha da reserva do passageiro
 */
 func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.Encoder, decoder *json.Decoder, req *Request, res *Resposta) error {
-
-	log.Printf("Ola esperando usuario escolher")
-
 	var encerrar_loop bool
 	for _, i := range itinerarios {
 		var trecho_preparado ViagemData
 
 		transacaoID, disponivel := grafo.ReservaPrepare(i) //mudança necessaria para trechos entre servidores
 
+		servidoresParticipantes := i.Servidores
+
+		log.Printf("[PASS CON ESCOLHA RESERVA] servidores participantes: %v", servidoresParticipantes)
+
 		if !disponivel {
-			ReservaAbort(transacaoID)
+			ReservaAbort(transacaoID, servidoresParticipantes)
 			continue
 		}
 
@@ -173,7 +155,7 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 			Viagens: []ViagemData{trecho_preparado},
 		}
 		if err := encoder.Encode(res); err != nil {
-			ReservaAbort(transacaoID)
+			ReservaAbort(transacaoID, servidoresParticipantes)
 			log.Printf("Erro ao enviar resposta: %v. Operação cancelada", err)
 			return err
 		}
@@ -182,7 +164,7 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 		//===========lê requisição do cliente============
 		err := decoder.Decode(req)
 		if err != nil {
-			ReservaAbort(transacaoID)
+			ReservaAbort(transacaoID, servidoresParticipantes)
 			log.Printf("Operação cancelada. Conexão do passagerio '%s' encerrada, durante escolha da reserva: %v", user, err)
 			return err
 		}
@@ -199,7 +181,7 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 				ReservasPass.Reservas[user][i.ID] = i
 				ReservasPass.mu.Unlock()
 
-				ReservaCommit(transacaoID, user)
+				ReservaCommit(transacaoID, user, servidoresParticipantes)
 
 				encerrar_loop = true
 
@@ -214,12 +196,12 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 			{
 				//A resposta ao ciente será dada na proxima iteração do loop
 				// ja com a proxima rota indexada
-				ReservaAbort(transacaoID)
+				ReservaAbort(transacaoID, servidoresParticipantes)
 			}
 		case "CANCELAR":
 			{
 				encerrar_loop = true
-				ReservaAbort(transacaoID)
+				ReservaAbort(transacaoID, servidoresParticipantes)
 				*res = Resposta{
 					Status:  "SUCESSO",
 					Message: "Operação Cancelada",
@@ -227,7 +209,7 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 			}
 		default:
 			encerrar_loop = true
-			ReservaAbort(transacaoID)
+			ReservaAbort(transacaoID, servidoresParticipantes)
 			*res = Resposta{
 				Status:  "ERRO",
 				Message: fmt.Sprintf("Acao não reconhecida: '%s' . Operação Cancelada", req.Acao),

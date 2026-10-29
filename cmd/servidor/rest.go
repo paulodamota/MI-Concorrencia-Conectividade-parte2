@@ -51,6 +51,10 @@ func IniciarServidorREST() {
 	mux.HandleFunc("GET /adjacencias/{cidade}", handleGetAdjacencias)
 	mux.HandleFunc("POST /reserva/prepare", handlePostReservaPrepare)
 	mux.HandleFunc("POST /reserva/commit", handlePostReservaCommit)
+	mux.HandleFunc("POST /reserva/abort", handlePostReservaAbort)
+
+	mux.HandleFunc("POST /reserva/remover/prepare", handlePostRemoverPrepare)
+	mux.HandleFunc("POST /reserva/remover/commit", handlePostRemoverCommit)
 
 	//ao enviar requisição, espera por 2 segundas
 	//não havendo resposta retorna erro

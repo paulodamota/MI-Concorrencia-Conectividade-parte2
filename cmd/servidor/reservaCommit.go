@@ -7,7 +7,7 @@ import (
 	. "vaijunto/shared"
 )
 
-func ReservaCommit(transacaoID string, passageiro string) {
+func ReservaCommit(transacaoID string, passageiro string, servidores []bool) {
 	//corpo com id da transacao e identificador do passageiro
 	body, _ := json.Marshal(PacoteHttp{
 		//aaaaah ta passando o mesmo 2 vezes, posso so tirar e acessar por Reserva...
@@ -18,7 +18,10 @@ func ReservaCommit(transacaoID string, passageiro string) {
 			User:      passageiro,
 		},
 	})
-	for _, url := range participantes {
-		go cliente.Post(url+"/reserva/commit", "application/json", bytes.NewBuffer(body))
+
+	for i, url := range urlsDosServidores {
+		if servidores[i] {
+			go cliente.Post(url+"/reserva/commit", "application/json", bytes.NewBuffer(body))
+		}
 	}
 }

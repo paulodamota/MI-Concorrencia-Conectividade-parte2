@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -59,5 +60,5 @@ func handlePostReservaCommit(w http.ResponseWriter, r *http.Request) {
 
 	//vota sim
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(PacoteHttp{Voto: true})
+	log.Printf("Transação %s confirmada com sucesso", req.TransacaoID)
 }

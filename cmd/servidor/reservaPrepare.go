@@ -40,8 +40,8 @@ func (g *GrafoRotas) ReservaPrepare(viagemData *ViagemData) (string, bool) {
 	}
 
 	requisicoes := 0
-	for _, servidor := range trechos {
-		if len(servidor) > 0 {
+	for _, TrechosDoServidorI := range trechos {
+		if len(TrechosDoServidorI) > 0 {
 			requisicoes++
 		}
 	}
@@ -53,7 +53,7 @@ func (g *GrafoRotas) ReservaPrepare(viagemData *ViagemData) (string, bool) {
 	//++[ ENVIO DE PREPARE ]++
 	votos := make(chan bool, requisicoes)
 
-	for i, url := range participantes {
+	for i, url := range urlsDosServidores {
 
 		var req PacoteHttp
 		req.TransacaoID = transacaoID
@@ -80,8 +80,8 @@ func (g *GrafoRotas) ReservaPrepare(viagemData *ViagemData) (string, bool) {
 			body, _ := json.Marshal(req)
 
 			respostaHttp, err := cliente.Post(url+"/reserva/prepare", "application/json", bytes.NewBuffer(body))
-			log.Printf("[RESERVA PREPARE] 5.5, erro: %v", err)
 			if err != nil || respostaHttp.StatusCode != http.StatusOK {
+				log.Printf("[RESERVA PREPARE] 6, erro: %v", err)
 				votos <- false //se deu erro, voto é não, cancela tudo
 				return
 			}
@@ -104,7 +104,7 @@ func (g *GrafoRotas) ReservaPrepare(viagemData *ViagemData) (string, bool) {
 		}
 	}
 
-	log.Printf("[RESERVA PREPARE] 6, commit: %t", commit)
+	log.Printf("[RESERVA PREPARE] 7, commit: %t", commit)
 
 	return transacaoID, commit
 

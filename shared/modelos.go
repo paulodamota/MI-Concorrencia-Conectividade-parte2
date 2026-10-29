@@ -56,9 +56,10 @@ type ReservaChave struct {
 }
 
 type ViagemData struct {
-	ID      string       `json:"id"`
-	Dono    string       `json:"dono"`
-	Trechos []TrechoData `json:"trechos"`
+	ID         string       `json:"id"`
+	Dono       string       `json:"dono"`
+	Trechos    []TrechoData `json:"trechos"`
+	Servidores []bool       `json:"servidores"` //campo temporario usado para rastrear quais servidores estão envolvidos na reservar durante a busca no grafo
 }
 
 func GetCidade(estado string, numero int) string {
@@ -220,7 +221,7 @@ func ImprimirReservas(viagens []ViagemData) {
 				fmt.Printf("\t\tID do trecho: %s\n", trecho.ID)
 				fmt.Printf("\t\t%s -> %s\n", trecho.Origem, trecho.Destino)
 				fmt.Printf("\t\tData: %s, Horario:%s \n", trecho.Data, trecho.Horario)
-				fmt.Printf("\t\tVagas: %d | Preço: R$ %.2f\n", trecho.Vagas, trecho.Preco)
+				fmt.Printf("\t\tPreço Por Vaga: R$ %.2f\n", trecho.Preco)
 				fmt.Printf("\t\tMotorista desse trecho: %s\n", trecho.Motorista)
 			}
 		} else {
@@ -249,7 +250,7 @@ func ImprimirReservasEscolha(viagens []ViagemData) {
 				fmt.Printf("\t\tID do trecho: %s\n", trecho.ID)
 				fmt.Printf("\t\t%s -> %s\n", trecho.Origem, trecho.Destino)
 				fmt.Printf("\t\tData: %s, Horario:%s \n", trecho.Data, trecho.Horario)
-				fmt.Printf("\t\tVagas: %d | Preço: R$ %.2f\n", trecho.Vagas+1, trecho.Preco)
+				fmt.Printf("\t\tVagas: %d | Preço: R$ %.2f\n", trecho.Vagas, trecho.Preco)
 				fmt.Printf("\t\tMotorista desse trecho: %s\n", trecho.Motorista)
 			}
 		} else {

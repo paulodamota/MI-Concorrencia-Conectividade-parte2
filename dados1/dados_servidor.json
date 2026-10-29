@@ -35,27 +35,7 @@
   "viagens_moto": {},
   "reservas_pass": {
     "novo": {},
-    "pass": {
-      "5b6c156d-e34b-4325-92e6-3895a086c541": {
-        "id": "5b6c156d-e34b-4325-92e6-3895a086c541",
-        "dono": "",
-        "trechos": [
-          {
-            "id": "b548ebbc-12dd-4ad9-96b8-bcf41c274981",
-            "viagemid": "e4574132-5045-49dd-a912-e01b5723a2ae",
-            "motorista": "motorista do servidor 2",
-            "origem": "Feira de Santana",
-            "destino": "Uberlândia",
-            "vagas": 2,
-            "preco": 10,
-            "data": "12-12-2027",
-            "horario": "agora",
-            "servidor": 2,
-            "viagensAssociadasids": null
-          }
-        ]
-      }
-    },
+    "pass": {},
     "passageiro do servidor 1": {},
     "paulo": {},
     "tre": {}

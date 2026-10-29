@@ -42,18 +42,19 @@ func (g *GrafoRotas) BuscarRotas(origem string, destino string, data string) []*
 	caminhoAtual := []TrechoData{}
 	visitados := make(map[string]bool)
 
-	g.dfsBusca(origem, destino, data, caminhoAtual, visitados, &resultados)
+	g.dfsBusca(origem, destino, data, caminhoAtual, visitados, &resultados, []bool{false, false, false})
 	return resultados
 }
 
 // estou mudando a busca para trabalhar com slice de trechodata em vez de slice de ponteiro de trecho
 // busca em profundidade recursivo para achar caminhos compostos
-func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho []TrechoData, visitados map[string]bool, resultados *[]*ViagemData) {
+func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho []TrechoData, visitados map[string]bool, resultados *[]*ViagemData, servidores []bool) {
+
 	// caso base salva copia do caminho encontrado
 	if atual == destino {
 		caminhoCopia := make([]TrechoData, len(caminho))
 		copy(caminhoCopia, caminho)
-		*resultados = append(*resultados, &ViagemData{Trechos: caminhoCopia})
+		*resultados = append(*resultados, &ViagemData{Trechos: caminhoCopia, Servidores: servidores})
 		return
 	}
 
@@ -87,8 +88,18 @@ func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho
 			// adiciona o trecho ao caminho
 			caminho = append(caminho, t)
 
+			//vai mapeando em quais servidores esse caminho está destribuido
+			switch t.Servidor {
+			case 1:
+				servidores[0] = true
+			case 2:
+				servidores[1] = true
+			case 3:
+				servidores[2] = true
+			}
+
 			// continua a busca a partir da próxima cidade
-			g.dfsBusca(t.Destino, destino, data, caminho, visitados, resultados)
+			g.dfsBusca(t.Destino, destino, data, caminho, visitados, resultados, servidores)
 
 			if len(*resultados) > 0 {
 				return
@@ -96,6 +107,14 @@ func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho
 
 			// remove o ultimo trecho para testar outras opções
 			caminho = caminho[:len(caminho)-1]
+			switch t.Servidor {
+			case 1:
+				servidores[0] = false
+			case 2:
+				servidores[1] = false
+			case 3:
+				servidores[2] = false
+			}
 		}
 	}
 }
