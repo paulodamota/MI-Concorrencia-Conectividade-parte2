@@ -1,13 +1,7 @@
 {
   "motoristas": {
-    "moto": {
-      "Nome": "moto",
-      "Senha": "123",
-      "LoggedIn": false,
-      "Notificacoes": null
-    },
-    "motorista do servidor 2": {
-      "Nome": "motorista do servidor 2",
+    "motorista servidor 2": {
+      "Nome": "motorista servidor 2",
       "Senha": "123",
       "LoggedIn": true,
       "Notificacoes": null
@@ -15,44 +9,23 @@
   },
   "passageiros": {},
   "viagens_moto": {
-    "moto": {
-      "d1731e8b-b59f-451c-a070-8479020ca486": {
-        "ID": "d1731e8b-b59f-451c-a070-8479020ca486",
-        "Dono": "moto",
+    "motorista servidor 2": {
+      "ed956c72-cba9-4d99-9d6a-de7e09bf6cde": {
+        "ID": "ed956c72-cba9-4d99-9d6a-de7e09bf6cde",
+        "Dono": "motorista servidor 2",
         "Trechos": [
           {
-            "ViagemID": "d1731e8b-b59f-451c-a070-8479020ca486",
-            "ID": "fe5378a4-150e-4865-a18c-ea770c47f0ac",
-            "Motorista": "moto",
-            "Origem": "Nossa Senhora do Socorro",
-            "Destino": "Feira de Santana",
-            "Vagas": 1,
-            "Preco": 20,
+            "ViagemID": "ed956c72-cba9-4d99-9d6a-de7e09bf6cde",
+            "ID": "d8a3b6fa-c87a-40c6-baa1-6885120fe68a",
+            "Motorista": "motorista servidor 2",
+            "Origem": "Belo Horizonte",
+            "Destino": "Uberlândia",
+            "Vagas": 12,
+            "Preco": 15,
             "Data": "12-12-1212",
             "Horario": "12",
             "Servidor": 2,
             "ReservasAssociadasIDS": null
-          }
-        ]
-      }
-    },
-    "motorista do servidor 2": {
-      "e4574132-5045-49dd-a912-e01b5723a2ae": {
-        "ID": "e4574132-5045-49dd-a912-e01b5723a2ae",
-        "Dono": "motorista do servidor 2",
-        "Trechos": [
-          {
-            "ViagemID": "e4574132-5045-49dd-a912-e01b5723a2ae",
-            "ID": "b548ebbc-12dd-4ad9-96b8-bcf41c274981",
-            "Motorista": "motorista do servidor 2",
-            "Origem": "Feira de Santana",
-            "Destino": "Uberlândia",
-            "Vagas": 2,
-            "Preco": 10,
-            "Data": "12-12-2027",
-            "Horario": "agora",
-            "Servidor": 2,
-            "ReservasAssociadasIDS": []
           }
         ]
       }

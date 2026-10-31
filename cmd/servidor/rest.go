@@ -38,6 +38,9 @@ type PacoteHttp struct {
 	TransacaoID string       `json:"transacaoid,omitempty"`
 	Reserva     ReservaChave `json:"passageiro,omitempty"`
 
+	Reservas  []ReservaChave `json:"reservas,omitempty"`
+	Motorista string         `json:"motorista,omitempty"`
+
 	Voto bool `json:"voto,omitempty"`
 }
 
@@ -56,10 +59,14 @@ func IniciarServidorREST() {
 	mux.HandleFunc("POST /reserva/remover/prepare", handlePostRemoverPrepare)
 	mux.HandleFunc("POST /reserva/remover/commit", handlePostRemoverCommit)
 
-	//ao enviar requisição, espera por 2 segundas
+	mux.HandleFunc("POST /viagem/cancelar/prepare", handlePostViagemCancelarPrepare)
+	mux.HandleFunc("POST /viagem/cancelar/commit", handlePostViagemCancelarCommit)
+	mux.HandleFunc("POST /viagem/cancelar/abort", handlePostViagemCancelarAbort)
+
+	//ao enviar requisição, espera por 500 milissegundos
 	//não havendo resposta retorna erro
 	cliente = &http.Client{
-		Timeout: 2 * time.Second,
+		Timeout: 500 * time.Millisecond,
 	}
 
 	go func() {

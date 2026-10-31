@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"slices"
 
 	. "vaijunto/shared"
 )
@@ -50,53 +49,14 @@ func MotoristaConn(encoder *json.Encoder, decoder *json.Decoder, user string) {
 
 		case "REMOVER_VIAGEM":
 			{
-				log.Printf("Solicitação de remoção de reserva de id: '%s' , pelo motorista '%s'", req.ID, user)
+				log.Printf("Solicitação de remoção de viagem de id: '%s' , pelo motorista '%s'", req.ID, user)
 
-				ViagensMoto.mu.Lock()
-				viagens := ViagensMoto.Viagens[user]
-				paraRemover, existe := viagens[req.ID]
-				if existe {
-					delete(viagens, req.ID)
-				}
-				ViagensMoto.mu.Unlock()
-
-				if !existe || paraRemover == nil {
-					res = Resposta{
-						Status:  "ERRO",
-						Message: "Reserva não encontrada.",
-					}
+				ok, msg := RemoverViagem2PC(user, req.ID)
+				if !ok {
+					res = Resposta{Status: "FALHA", Message: msg}
 					break
 				}
-
-				viagensPassageirosAfetadas := grafo.RemoverViagemMotorista(paraRemover)
-
-				if len(viagensPassageirosAfetadas) > 0 {
-
-					ReservasPass.mu.Lock()
-					for _, viagemAfetada := range viagensPassageirosAfetadas {
-						passageiroAfetado := viagemAfetada.User
-
-						passAfet, _ := Passageiros.Load(passageiroAfetado)
-
-						msg := fmt.Sprintf("Sua reserva de ID '%s' foi cancelada pois um de seus motorista cancelou a viagem!\n Em breve você receberá reemboloso de sua reserva. Agradecemos a compreensão!\n", viagemAfetada.ReservaID)
-						if !slices.Contains(passAfet.(*Usuario).Notificacoes, msg) {
-							passAfet.(*Usuario).AdicionarNotificacao(msg)
-						}
-
-						reservas := ReservasPass.Reservas[passageiroAfetado]
-						//To DO Remover Reservas usando 2pc
-						//grafo.LiberarVagas(reservas[viagemAfetada.ReservaID]) //devolvendo vagas para cada trecho da vaga antes de remover
-						delete(reservas, viagemAfetada.ReservaID)
-					}
-				}
-				ReservasPass.mu.Unlock()
-
-				log.Printf("%d reservas de passageiros foram canceladas devido à exclusão da viagem %s", len(viagensPassageirosAfetadas), req.ID)
-
-				res = Resposta{
-					Status:  "SUCESSO",
-					Message: "Viagem removida com sucesso. Quaisquer reservas dependentes foram canceladas.",
-				}
+				res = Resposta{Status: "SUCESSO", Message: msg}
 
 			}
 

@@ -205,7 +205,7 @@ func ImprimirViagens(viagens []ViagemData) {
 }
 
 func ImprimirReservas(viagens []ViagemData) {
-	fmt.Println("================ RESUMO DE RESERVAS ================")
+	fmt.Println("======================== RESUMO DE RESERVAS ========================")
 
 	for h, viagem := range viagens {
 		fmt.Printf("Reserva #%d:\n", h+1)
@@ -228,13 +228,13 @@ func ImprimirReservas(viagens []ViagemData) {
 			fmt.Println("  Nenhum trecho cadastrado para esta reserva.")
 		}
 
-		fmt.Println("---------------------------------------------------")
+		fmt.Println("------------------------------------------------------------------")
 	}
-	fmt.Println("===================================================")
+	fmt.Println("==================================================================")
 }
 
 func ImprimirReservasEscolha(viagens []ViagemData) {
-	fmt.Println("================ RESUMO DE RESERVAS ================")
+	fmt.Println("======================== ROTA  ENCONTRADA ========================")
 
 	for h, viagem := range viagens {
 		fmt.Printf("Reserva #%d:\n", h+1)
@@ -257,9 +257,9 @@ func ImprimirReservasEscolha(viagens []ViagemData) {
 			fmt.Println("  Nenhum trecho cadastrado para esta reserva.")
 		}
 
-		fmt.Println("---------------------------------------------------")
+		fmt.Println("------------------------------------------------------------------")
 	}
-	fmt.Println("===================================================")
+	fmt.Println("==================================================================")
 }
 
 // recebe uma string como "BA-1" ou "MG, 4" e retorna o estado e o número da cidade.

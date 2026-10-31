@@ -38,7 +38,7 @@ var (
 
 	transacoes = InicializarTransacoes()
 
-	//urls dos urlsDosServidores
+	//urls dos Servidores
 	urlsDosServidores []string
 )
 

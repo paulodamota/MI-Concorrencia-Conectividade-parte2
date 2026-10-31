@@ -1,152 +1,47 @@
-2026/10/28 20:13:04 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 20:13:04 === SERVIDOR INICIADO ===
-2026/10/28 20:13:27 Novo Motorista "motorista do servidor 2" cadastrado com senha '123'
-2026/10/28 20:15:39 Lista de trechos enviada pelo motorista 'motorista do servidor 2' 
+2026/10/31 00:40:34 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
+2026/10/31 00:40:34 === SERVIDOR INICIADO ===
+2026/10/31 00:44:33 Novo Motorista "motorista servidor 2" cadastrado com senha '123'
+2026/10/31 00:45:40 Lista de trechos enviada pelo motorista 'motorista servidor 2' 
 Paradas 1
-2026/10/28 20:23:31 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 20:23:31 === SERVIDOR INICIADO ===
-2026/10/28 20:26:23 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 20:26:23 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 2 10 12-12-2027 agora 2 []}]
-2026/10/28 20:31:17 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 20:31:17 === SERVIDOR INICIADO ===
-2026/10/28 20:32:35 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 20:32:35 === SERVIDOR INICIADO ===
-2026/10/28 20:32:56 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 20:32:56 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 2 10 12-12-2027 agora 2 []}]
-2026/10/28 20:38:47 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 20:38:47 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 2 10 12-12-2027 agora 2 []}]
-2026/10/28 20:40:24 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 20:40:24 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 2 10 12-12-2027 agora 2 []}]
-2026/10/28 20:45:42 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 20:45:42 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 2 10 12-12-2027 agora 2 []}]
-2026/10/28 20:48:27 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 20:48:27 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 2 10 12-12-2027 agora 2 []}]
-2026/10/28 20:49:00 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 20:49:00 === SERVIDOR INICIADO ===
-2026/10/28 20:53:33 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 20:53:33 === SERVIDOR INICIADO ===
-2026/10/28 20:54:15 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 20:54:15 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 2 10 12-12-2027 agora 2 []}]
-2026/10/28 20:57:55 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 20:57:55 === SERVIDOR INICIADO ===
-2026/10/28 20:58:09 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 20:58:09 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 2 10 12-12-2027 agora 2 []}]
-2026/10/28 21:04:46 [HANDLE RESERVA PREPARE] 1
-2026/10/28 21:06:48 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 21:06:48 === SERVIDOR INICIADO ===
-2026/10/28 21:08:24 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 21:08:24 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 2 10 12-12-2027 agora 2 []}]
-2026/10/28 21:12:34 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 21:12:34 === SERVIDOR INICIADO ===
-2026/10/28 21:12:57 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 21:12:57 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 2 10 12-12-2027 agora 2 []}]
-2026/10/28 21:12:59 Requisição recebida para a cidade: Uberlândia
-2026/10/28 21:12:59 Adjacencias para Uberlândia: []
-2026/10/28 21:21:26 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 21:21:26 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 2 10 12-12-2027 agora 2 []}]
-2026/10/28 21:23:05 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 21:23:05 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 2 10 12-12-2027 agora 2 []}]
-2026/10/28 21:23:07 [HANDLE RESERVA PREPARE] 1
-2026/10/28 21:23:07 [HANDLE RESERVA PREPARE] 2
-2026/10/28 21:23:07 [HANDLE RESERVA PREPARE] 4
-2026/10/28 21:23:07 http: panic serving 172.17.0.1:44898: assignment to entry in nil map
-goroutine 15 [running]:
-net/http.(*conn).serve.func1()
-	/usr/local/go/src/net/http/server.go:1959 +0xbb
-panic({0xa4ed38?, 0xad7b40?})
-	/usr/local/go/src/runtime/panic.go:859 +0x125
-main.handlePostReservaPrepare({0xa93620, 0x1baa5d2f61e0}, 0x1baa5d2cea00)
-	/app/cmd/servidor/handlePostReservaPrepare.go:73 +0x7eb
-net/http.HandlerFunc.ServeHTTP(0x1baa5d368000?, {0xa93620?, 0x1baa5d2f61e0?}, 0x408b58?)
-	/usr/local/go/src/net/http/server.go:2358 +0x29
-net/http.(*ServeMux).ServeHTTP(0x6be8c0?, {0xa93620, 0x1baa5d2f61e0}, 0x1baa5d2cea00)
-	/usr/local/go/src/net/http/server.go:2923 +0x1cf
-net/http.serverHandler.ServeHTTP({0x10?}, {0xa93620?, 0x1baa5d2f61e0?}, 0x1?)
-	/usr/local/go/src/net/http/server.go:3436 +0x8e
-net/http.(*conn).serve(0x1baa5d2c8750, {0xa93a68, 0x1baa5d2a5080})
-	/usr/local/go/src/net/http/server.go:2157 +0x6dc
-created by net/http.(*Server).Serve in goroutine 18
-	/usr/local/go/src/net/http/server.go:3604 +0x4fd
-2026/10/28 21:30:06 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 21:30:06 === SERVIDOR INICIADO ===
-2026/10/28 21:30:14 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 21:30:14 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 2 10 12-12-2027 agora 2 []}]
-2026/10/28 21:30:16 [HANDLE RESERVA PREPARE] 1
-2026/10/28 21:30:16 [HANDLE RESERVA PREPARE] 2
-2026/10/28 21:30:16 [HANDLE RESERVA PREPARE] 4
-2026/10/28 21:30:16 http: panic serving 172.17.0.1:48750: assignment to entry in nil map
-goroutine 10 [running]:
-net/http.(*conn).serve.func1()
-	/usr/local/go/src/net/http/server.go:1959 +0xbb
-panic({0xa4ed38?, 0xad7b40?})
-	/usr/local/go/src/runtime/panic.go:859 +0x125
-main.handlePostReservaPrepare({0xa93620, 0x1a0af00d62d0}, 0x1a0af00aa3c0)
-	/app/cmd/servidor/handlePostReservaPrepare.go:73 +0x7eb
-net/http.HandlerFunc.ServeHTTP(0x1a0af00860c0?, {0xa93620?, 0x1a0af00d62d0?}, 0x408b58?)
-	/usr/local/go/src/net/http/server.go:2358 +0x29
-net/http.(*ServeMux).ServeHTTP(0x6be8c0?, {0xa93620, 0x1a0af00d62d0}, 0x1a0af00aa3c0)
-	/usr/local/go/src/net/http/server.go:2923 +0x1cf
-net/http.serverHandler.ServeHTTP({0x10?}, {0xa93620?, 0x1a0af00d62d0?}, 0x1?)
-	/usr/local/go/src/net/http/server.go:3436 +0x8e
-net/http.(*conn).serve(0x1a0af00a6480, {0xa93a68, 0x1a0af0122270})
-	/usr/local/go/src/net/http/server.go:2157 +0x6dc
-created by net/http.(*Server).Serve in goroutine 9
-	/usr/local/go/src/net/http/server.go:3604 +0x4fd
-2026/10/28 21:33:05 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 21:33:05 === SERVIDOR INICIADO ===
-2026/10/28 21:33:21 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 21:33:21 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 2 10 12-12-2027 agora 2 []}]
-2026/10/28 21:33:23 [HANDLE RESERVA PREPARE] 1
-2026/10/28 21:33:23 [HANDLE RESERVA PREPARE] 2
-2026/10/28 21:33:23 [HANDLE RESERVA PREPARE] 4
-2026/10/28 21:34:08 Motorista "motorista do servidor 2" fez login
-2026/10/28 23:06:27 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 23:06:27 === SERVIDOR INICIADO ===
-2026/10/28 23:06:46 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 23:06:46 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 1 10 12-12-2027 agora 2 [{5b6c156d-e34b-4325-92e6-3895a086c541 pass 1}]}]
-2026/10/28 23:06:48 [HANDLE RESERVA PREPARE] 1
-2026/10/28 23:06:48 [HANDLE RESERVA PREPARE] 2
-2026/10/28 23:06:48 [HANDLE RESERVA PREPARE] 4
-2026/10/28 23:21:28 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 23:21:28 === SERVIDOR INICIADO ===
-2026/10/28 23:21:42 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 23:21:42 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 1 10 12-12-2027 agora 2 [{5b6c156d-e34b-4325-92e6-3895a086c541 pass 1}]}]
-2026/10/28 23:21:44 [HANDLE RESERVA PREPARE] 1
-2026/10/28 23:21:44 [HANDLE RESERVA PREPARE] 2
-2026/10/28 23:21:44 [HANDLE RESERVA PREPARE] 4
-2026/10/28 23:25:11 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 23:25:11 === SERVIDOR INICIADO ===
-2026/10/28 23:25:50 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 23:25:50 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 1 10 12-12-2027 agora 2 [{5b6c156d-e34b-4325-92e6-3895a086c541 pass 1}]}]
-2026/10/28 23:25:52 [HANDLE RESERVA PREPARE] 1
-2026/10/28 23:25:52 [HANDLE RESERVA PREPARE] 2
-2026/10/28 23:25:52 [HANDLE RESERVA PREPARE] 4
-2026/10/28 23:26:02 Transação b8af705c-38b3-4642-8d9d-7a258ba101eb abortada com sucesso
-2026/10/28 23:26:50 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 23:26:50 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 1 10 12-12-2027 agora 2 [{5b6c156d-e34b-4325-92e6-3895a086c541 pass 1}]}]
-2026/10/28 23:26:52 [HANDLE RESERVA PREPARE] 1
-2026/10/28 23:26:52 [HANDLE RESERVA PREPARE] 2
-2026/10/28 23:26:52 [HANDLE RESERVA PREPARE] 4
-2026/10/28 23:26:54 Transação 1693a87f-a9bd-4b6f-997d-7f78d9a3f6c9 confirmada com sucesso
-2026/10/28 23:57:29 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/28 23:57:29 === SERVIDOR INICIADO ===
-2026/10/28 23:58:07 Requisição recebida para a cidade: Feira de Santana
-2026/10/28 23:58:07 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 0 10 12-12-2027 agora 2 [{5b6c156d-e34b-4325-92e6-3895a086c541 pass 1} {1693a87f-a9bd-4b6f-997d-7f78d9a3f6c9 pass 1}]}]
-2026/10/28 23:59:10 Novo Motorista "moto" cadastrado com senha '123'
-2026/10/28 23:59:53 Lista de trechos enviada pelo motorista 'moto' 
+2026/10/31 00:46:13 Requisição recebida para a cidade: Feira de Santana
+2026/10/31 00:46:13 Adjacencias para Feira de Santana: []
+2026/10/31 00:46:15 Requisição recebida para a cidade: Salvador
+2026/10/31 00:46:15 Adjacencias para Salvador: []
+2026/10/31 00:48:27 Conexão de motorista 'motorista servidor 2' encerrada no handle com erro: EOF
+2026/10/31 00:48:27 Conexão encerrada no menu principal: EOF
+2026/10/31 00:48:54 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
+2026/10/31 00:48:54 === SERVIDOR INICIADO ===
+2026/10/31 00:50:20 Requisição recebida para a cidade: Feira de Santana
+2026/10/31 00:50:20 Adjacencias para Feira de Santana: []
+2026/10/31 00:50:22 Requisição recebida para a cidade: Salvador
+2026/10/31 00:50:22 Adjacencias para Salvador: []
+2026/10/31 00:51:11 Motorista "motorista servidor 2" fez login
+2026/10/31 00:52:00 Lista de trechos enviada pelo motorista 'motorista servidor 2' 
 Paradas 1
-2026/10/29 00:00:45 Requisição recebida para a cidade: Nossa Senhora do Socorro
-2026/10/29 00:00:45 Adjacencias para Nossa Senhora do Socorro: [{fe5378a4-150e-4865-a18c-ea770c47f0ac d1731e8b-b59f-451c-a070-8479020ca486 moto Nossa Senhora do Socorro Feira de Santana 1 20 12-12-1212 12 2 []}]
-2026/10/29 00:00:47 [HANDLE RESERVA PREPARE] 1
-2026/10/29 00:00:47 [HANDLE RESERVA PREPARE] 2
-2026/10/29 00:00:47 [HANDLE RESERVA PREPARE] 4
-2026/10/29 00:00:57 Transação 65c7f875-f3f4-4727-a753-cd266f298f08 abortada com sucesso
-2026/10/29 01:22:10 Requisição recebida para a cidade: Feira de Santana
-2026/10/29 01:22:10 Adjacencias para Feira de Santana: [{b548ebbc-12dd-4ad9-96b8-bcf41c274981 e4574132-5045-49dd-a912-e01b5723a2ae motorista do servidor 2 Feira de Santana Uberlândia 0 10 12-12-2027 agora 2 [{5b6c156d-e34b-4325-92e6-3895a086c541 pass 1} {1693a87f-a9bd-4b6f-997d-7f78d9a3f6c9 pass 1}]}]
-2026/10/29 01:25:47 Motorista 'moto' fez logout 
-2026/10/29 01:25:56 Motorista "motorista do servidor 2" fez login
-2026/10/29 01:34:26 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/29 01:34:26 === SERVIDOR INICIADO ===
-2026/10/29 01:34:40 Motorista "motorista do servidor 2" fez login
-2026/10/29 01:35:18 [REMOVER COMMIT] transação d3c25724-8125-402f-b783-301091ba3eef confirmada
-2026/10/29 01:35:59 [REMOVER COMMIT] transação eda4a574-fd3c-4e63-9dc4-4576ddfb465f confirmada
+2026/10/31 00:53:51 Requisição recebida para a cidade: Feira de Santana
+2026/10/31 00:53:51 Adjacencias para Feira de Santana: []
+2026/10/31 00:53:53 Requisição recebida para a cidade: Salvador
+2026/10/31 00:53:53 Adjacencias para Salvador: [{5a24610b-8570-4b0f-adee-800505899a90 71d513d4-fbbe-4461-bd66-52749916c2d7 motorista servidor 2 Salvador Belo Horizonte 13 13 11-11-1111 11 2 []}]
+2026/10/31 00:53:55 [HANDLE RESERVA PREPARE] 1
+2026/10/31 00:53:55 [HANDLE RESERVA PREPARE] 2
+2026/10/31 00:53:55 [HANDLE RESERVA PREPARE] 4
+2026/10/31 00:54:05 Transação b1ec553c-c173-42fa-ab3a-1a750269e7fe abortada com sucesso
+2026/10/31 01:05:47 Requisição recebida para a cidade: Feira de Santana
+2026/10/31 01:05:47 Adjacencias para Feira de Santana: []
+2026/10/31 01:05:49 Requisição recebida para a cidade: Salvador
+2026/10/31 01:05:49 Adjacencias para Salvador: [{5a24610b-8570-4b0f-adee-800505899a90 71d513d4-fbbe-4461-bd66-52749916c2d7 motorista servidor 2 Salvador Belo Horizonte 13 13 11-11-1111 11 2 []}]
+2026/10/31 01:05:51 [HANDLE RESERVA PREPARE] 1
+2026/10/31 01:05:51 [HANDLE RESERVA PREPARE] 2
+2026/10/31 01:05:51 [HANDLE RESERVA PREPARE] 4
+2026/10/31 01:06:02 Transação b6069d3a-43ed-4a79-969a-4bc3eb00f228 confirmada com sucesso
+2026/10/31 01:15:41 [REMOVER COMMIT] transação bbafae7c-35b3-4573-821b-7820ac55d2de confirmada
+2026/10/31 01:16:34 Requisição recebida para a cidade: Feira de Santana
+2026/10/31 01:16:34 Adjacencias para Feira de Santana: []
+2026/10/31 01:16:36 Requisição recebida para a cidade: Salvador
+2026/10/31 01:16:36 Adjacencias para Salvador: [{5a24610b-8570-4b0f-adee-800505899a90 71d513d4-fbbe-4461-bd66-52749916c2d7 motorista servidor 2 Salvador Belo Horizonte 13 13 11-11-1111 11 2 []}]
+2026/10/31 01:16:38 [HANDLE RESERVA PREPARE] 1
+2026/10/31 01:16:38 [HANDLE RESERVA PREPARE] 2
+2026/10/31 01:16:38 [HANDLE RESERVA PREPARE] 4
+2026/10/31 01:17:19 Transação 0382b61b-a848-42d8-a3a1-4b8f9df92f96 confirmada com sucesso
+2026/10/31 01:21:39 Solicitação de remoção de viagem de id: '71d513d4-fbbe-4461-bd66-52749916c2d7' , pelo motorista 'motorista servidor 2'
+2026/10/31 01:21:39 [REMOVER VIAGEM 2PC] viagem 71d513d4-fbbe-4461-bd66-52749916c2d7 do motorista 'motorista servidor 2' removida; 1 reservas canceladas (transação 942500c1-b45d-4980-af04-6a3497a62c78)

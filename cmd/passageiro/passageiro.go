@@ -232,7 +232,7 @@ func LoggedIn(encoder *json.Encoder, decoder *json.Decoder, scanner *bufio.Scann
 				fmt.Println("3. Cancelar busca")
 				fmt.Print(">> ")
 
-				fmt.Println("Você tem 10 segundos para tomar uma ação, ou a operação será cancelada:")
+				fmt.Println("Você tem 15 segundos para tomar uma ação, ou a operação será cancelada:")
 
 				//canaaaaaal
 				canal := make(chan string)
@@ -244,13 +244,46 @@ func LoggedIn(encoder *json.Encoder, decoder *json.Decoder, scanner *bufio.Scann
 					canal <- text
 				}()
 
+				canalTimeout := make(chan bool)
+				pararBarra := make(chan struct{})
+				// Goroutine para atualizar a barra de progresso a cada 1 segundo
+				go func() {
+					totalSegundos := 15
+					tamanhoBarra := 20
+
+					for i := 0; i <= totalSegundos; i++ {
+						restantes := totalSegundos - i
+
+						// Se o tempo acabou, avisa o select principal
+						if restantes == 0 {
+							canalTimeout <- true
+							break
+						}
+
+						select {
+						case <-pararBarra:
+							return
+						case <-time.After(1 * time.Second):
+						}
+
+						// Desenha a barra de progresso
+						progresso := (i * tamanhoBarra) / totalSegundos
+						barra := strings.Repeat("█", progresso) + strings.Repeat("-", tamanhoBarra-progresso)
+
+						fmt.Printf("\r[%s] %2d segundos restantes... ", barra, restantes)
+
+						time.Sleep(1 * time.Second)
+					}
+				}()
+
 				// ou digita ou vapos
 				var input string
 				select {
-				case texto := <-canal:
-					input = texto
+				case input = <-canal:
+					close(pararBarra)
+					fmt.Print("\n")
 
-				case <-time.After(10 * time.Second):
+				case <-canalTimeout:
 					fmt.Println("\n[Tempo esgotado!] A operação será cancelada por inatividade.")
 					input = "3"
 				}
@@ -344,7 +377,10 @@ func LoggedIn(encoder *json.Encoder, decoder *json.Decoder, scanner *bufio.Scann
 					os.Exit(1)
 				}
 				fmt.Printf("\nServidor diz: [%s] %s\n", res.Status, res.Message)
-				fmt.Printf("Reserva de ID %s removida", remover)
+
+				if res.Status == "SUCESSO" {
+					fmt.Printf("Reserva de ID %s removida", remover)
+				}
 
 			}
 		case "3": //listar reservas

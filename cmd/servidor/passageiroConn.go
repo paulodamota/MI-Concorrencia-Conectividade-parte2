@@ -29,8 +29,6 @@ func PassageiroConn(encoder *json.Encoder, decoder *json.Decoder, user string) {
 
 				itinerarios := grafo.BuscarRotas(req.Origem, req.Destino, req.Data)
 
-				log.Printf("Voltou da busca! \n %d \n %v", len(itinerarios), *itinerarios[0])
-
 				//caso não haja rotas
 				if len(itinerarios) == 0 {
 					res = Resposta{
