@@ -121,3 +121,106 @@ Paradas 1
 2026/10/31 01:17:19 Transação 0382b61b-a848-42d8-a3a1-4b8f9df92f96 confirmada com sucesso
 2026/10/31 01:21:39 [CANCELAR VIAGEM COMMIT] transação 942500c1-b45d-4980-af04-6a3497a62c78: 1 reservas removidas
 2026/10/31 01:21:39 [REMOVER COMMIT] transação 942500c1-b45d-4980-af04-6a3497a62c78:trechos confirmada
+2026/10/31 23:03:08 ##### Servidor [REST] instância '1' a iniciar na porta :2828... #####
+2026/10/31 23:03:08 === SERVIDOR INICIADO ===
+2026/10/31 23:03:45 Novo Passageiro "pass" cadastrado com senha '123'
+2026/10/31 23:04:01 Tentativa de reserva de rota enviada pelo passageiro pass: Origem: Feira de Santana, Destino: Belo Horizonte
+2026/10/31 23:04:01 
+ url: http://192.168.15.111:2929/adjacencias/Feira de Santana
+2026/10/31 23:04:01 
+ url: http://192.168.15.111:3131/adjacencias/Feira de Santana
+2026/10/31 23:04:01 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded
+2026/10/31 23:04:01 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded
+2026/10/31 23:04:01 
+ url: http://192.168.15.111:2929/adjacencias/Salvador
+2026/10/31 23:04:01 
+ url: http://192.168.15.111:3131/adjacencias/Salvador
+2026/10/31 23:04:01 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Salvador": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:04:01 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Salvador": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:07:29 Tentativa de reserva de rota enviada pelo passageiro pass: Origem: Feira de Santana, Destino: Uberlândia
+2026/10/31 23:07:29 
+ url: http://192.168.15.111:2929/adjacencias/Feira de Santana
+2026/10/31 23:07:29 
+ url: http://192.168.15.111:3131/adjacencias/Feira de Santana
+2026/10/31 23:07:29 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:07:29 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:07:29 
+ url: http://192.168.15.111:2929/adjacencias/Salvador
+2026/10/31 23:07:29 
+ url: http://192.168.15.111:3131/adjacencias/Salvador
+2026/10/31 23:07:29 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Salvador": net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:07:29 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Salvador": net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:07:29 
+ url: http://192.168.15.111:2929/adjacencias/Belo Horizonte
+2026/10/31 23:07:29 
+ url: http://192.168.15.111:3131/adjacencias/Belo Horizonte
+2026/10/31 23:07:29 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Belo%20Horizonte": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:07:29 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Belo%20Horizonte": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:07:29 [RESERVA PREPARE] 1
+2026/10/31 23:07:29 [RESERVA PREPARE] 3, requisicao para servidor 2
+2026/10/31 23:07:29 [RESERVA PREPARE] 3, requisicao para servidor 2
+2026/10/31 23:07:29 [RESERVA PREPARE] 5, requisicoes: 1
+2026/10/31 23:07:30 [RESERVA PREPARE] 6, erro: Post "http://192.168.15.111:2929/reserva/prepare": net/http: request canceled (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:07:30 [RESERVA PREPARE] 7, commit: false
+2026/10/31 23:07:30 [PASS CON ESCOLHA RESERVA] servidores participantes: [false true false]
+2026/10/31 23:07:30 Enviando abort da transação dbd16b16-9d8a-437f-976a-e630b9f6899d, para o servidor 2
+2026/10/31 23:15:03 ##### Servidor [REST] instância '1' a iniciar na porta :2828... #####
+2026/10/31 23:15:03 === SERVIDOR INICIADO ===
+2026/10/31 23:15:17 Passageiro "pass" fez login
+2026/10/31 23:15:30 Tentativa de reserva de rota enviada pelo passageiro pass: Origem: Feira de Santana, Destino: Uberlândia
+2026/10/31 23:15:30 
+ url: http://192.168.15.111:2929/adjacencias/Feira de Santana
+2026/10/31 23:15:30 
+ url: http://192.168.15.111:3131/adjacencias/Feira de Santana
+2026/10/31 23:15:30 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded
+2026/10/31 23:15:30 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded
+2026/10/31 23:15:30 
+ url: http://192.168.15.111:2929/adjacencias/Salvador
+2026/10/31 23:15:30 
+ url: http://192.168.15.111:3131/adjacencias/Salvador
+2026/10/31 23:15:30 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Salvador": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:15:30 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Salvador": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:15:30 
+ url: http://192.168.15.111:2929/adjacencias/Belo Horizonte
+2026/10/31 23:15:30 
+ url: http://192.168.15.111:3131/adjacencias/Belo Horizonte
+2026/10/31 23:15:30 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Belo%20Horizonte": net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:15:30 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Belo%20Horizonte": net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:15:30 [RESERVA PREPARE] 1
+2026/10/31 23:15:30 [RESERVA PREPARE] 3, requisicao para servidor 2
+2026/10/31 23:15:30 [RESERVA PREPARE] 3, requisicao para servidor 2
+2026/10/31 23:15:30 [RESERVA PREPARE] 5, requisicoes: 1
+2026/10/31 23:15:30 [RESERVA PREPARE] 6, erro: <nil>
+2026/10/31 23:15:30 [RESERVA PREPARE] 7, commit: false
+2026/10/31 23:15:30 [PASS CON ESCOLHA RESERVA] servidores participantes: [false true false]
+2026/10/31 23:15:30 Enviando abort da transação 2d55f3c9-5ce8-4c76-bc2a-7c7a2e6832c9, para o servidor 2
+2026/10/31 23:24:09 ##### Servidor [REST] instância '1' a iniciar na porta :2828... #####
+2026/10/31 23:24:09 === SERVIDOR INICIADO ===
+2026/10/31 23:24:26 Passageiro "pass" fez login
+2026/10/31 23:24:34 Tentativa de reserva de rota enviada pelo passageiro pass: Origem: Feira de Santana, Destino: Uberlândia
+2026/10/31 23:24:34 
+ url: http://192.168.15.111:2929/adjacencias/Feira de Santana
+2026/10/31 23:24:34 
+ url: http://192.168.15.111:3131/adjacencias/Feira de Santana
+2026/10/31 23:24:34 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:24:34 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Feira%20de%20Santana": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:24:34 
+ url: http://192.168.15.111:2929/adjacencias/Salvador
+2026/10/31 23:24:34 
+ url: http://192.168.15.111:3131/adjacencias/Salvador
+2026/10/31 23:24:34 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Salvador": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:24:34 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Salvador": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/10/31 23:24:34 
+ url: http://192.168.15.111:2929/adjacencias/Belo Horizonte
+2026/10/31 23:24:34 
+ url: http://192.168.15.111:3131/adjacencias/Belo Horizonte
+2026/10/31 23:24:35 [REST] Erro ao fazer requisição HTTP para 3: Get "http://192.168.15.111:3131/adjacencias/Belo%20Horizonte": context deadline exceeded
+2026/10/31 23:24:35 [GRAFO] Erro ao buscar adjacências do servidor 3: Get "http://192.168.15.111:3131/adjacencias/Belo%20Horizonte": context deadline exceeded
+2026/10/31 23:24:35 [RESERVA PREPARE] 1
+2026/10/31 23:24:35 [RESERVA PREPARE] 3, requisicao para servidor 2
+2026/10/31 23:24:35 [RESERVA PREPARE] 3, requisicao para servidor 2
+2026/10/31 23:24:35 [RESERVA PREPARE] 5, requisicoes: 1
+2026/10/31 23:24:35 [RESERVA PREPARE] 7, commit: true
+2026/10/31 23:24:35 [PASS CON ESCOLHA RESERVA] servidores participantes: [false true false]
+2026/10/31 23:24:35 Ola esperando usuario decidir sobre rota preparada
+2026/10/31 23:25:04 Reserva de id 28fd0b83-93ea-404a-be0d-27c4522a9c98 realizada com sucesso para o passageiro 'pass'

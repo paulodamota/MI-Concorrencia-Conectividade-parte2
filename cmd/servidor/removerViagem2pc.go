@@ -231,7 +231,7 @@ func commitComRetry(url string, pacote PacoteHttp, transacaoID string, servidorD
 		if err == nil && (status == http.StatusOK || status == http.StatusNotFound) {
 			return
 		}
-		time.Sleep(time.Duration(tentativa) * 500 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 	}
 	log.Printf("[REMOVER VIAGEM 2PC] ATENÇÃO: servidor %d não confirmou commit (%s) da transação %s",
 		servidorDestino, url, transacaoID)

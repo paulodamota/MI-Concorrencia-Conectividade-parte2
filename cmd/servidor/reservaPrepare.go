@@ -13,7 +13,7 @@ import (
 )
 
 // tenta reservar vagas em trechos
-func (g *GrafoRotas) ReservaPrepare(viagemData *ViagemData) (string, bool) {
+func ReservaPrepare(viagemData *ViagemData, ts Timestamp) (string, bool) {
 
 	log.Printf("[RESERVA PREPARE] 1")
 
@@ -57,6 +57,7 @@ func (g *GrafoRotas) ReservaPrepare(viagemData *ViagemData) (string, bool) {
 
 		var req PacoteHttp
 		req.TransacaoID = transacaoID
+		req.Timestamp = ts
 
 		//construindo requisicao com os trechos desejados
 		switch i {

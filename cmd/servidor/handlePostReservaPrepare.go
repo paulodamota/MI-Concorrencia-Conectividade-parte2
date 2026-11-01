@@ -4,79 +4,54 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 )
 
 func handlePostReservaPrepare(w http.ResponseWriter, r *http.Request) {
-	log.Printf("[HANDLE RESERVA PREPARE] 1")
-	//trata erro de leitura
 	var req PacoteHttp
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	log.Printf("[HANDLE RESERVA PREPARE] 2")
 
-	//constroi as chaves de trechos
-	trechosChaves := make([]TrechoChaves, len(req.Trechos))
-	for i, trechoData := range req.Trechos {
-		trechosChaves[i] = TrechoChaves{
-			ID:       trechoData.ID,
-			ViagemID: trechoData.ViagemID,
-			UserName: trechoData.Motorista}
+	chaves := make([]TrechoChaves, len(req.Trechos))
+	for i, td := range req.Trechos {
+		chaves[i] = TrechoChaves{UserName: td.Motorista, ViagemID: td.ViagemID, ID: td.ID}
 	}
 
-	transacoes.mu.Lock()
-	defer transacoes.mu.Unlock()
-
-	for _, tc := range trechosChaves {
-
-		transacao, ocupado := transacoes.TransacaoDoTrecho[tc]
-		if ocupado {
-			log.Printf("Trecho %s já está em uma transação (%s)", tc.ID, transacao)
-			w.WriteHeader(http.StatusConflict)
-			json.NewEncoder(w).Encode(PacoteHttp{Voto: false})
-			return
-		}
-
-		//acessa no mapa a viagem que contem o trecho
-		ViagensMoto.mu.Lock()
-		viagem, existe := ViagensMoto.Viagens[tc.UserName][tc.ViagemID]
-
-		//se não existe cancela
-		if !existe {
-			ViagensMoto.mu.Unlock()
-			http.Error(w, "Viagem não encontrada", http.StatusNotFound)
-			return
-		}
-
-		ViagensMoto.mu.Unlock()
-
-		//procura o trecho na viagem
-		viagem.mu.Lock()
-		for _, t := range viagem.Trechos {
-
-			//se não tem vaga cancela
-			if t.ID == tc.ID && t.Vagas <= 0 {
-				viagem.mu.Unlock()
-				w.WriteHeader(http.StatusConflict)
-				json.NewEncoder(w).Encode(PacoteHttp{Voto: false})
-				log.Printf("[HANDLE RESERVA PREPARE] 3")
-
-				return
-			}
-		}
-		viagem.mu.Unlock()
+	pedido := &pedidoReserva{
+		ts:        req.Timestamp,
+		id:        req.TransacaoID,
+		chaves:    chaves,
+		chegada:   time.Now(),
+		resultado: make(chan bool, 1),
 	}
-	log.Printf("[HANDLE RESERVA PREPARE] 4")
+	enfileirar(pedido)
 
-	//insere as chaves dos trechos como valor do ID da transacao no mapa
-	transacoes.TrechosDaTransacao[req.TransacaoID] = trechosChaves
+	select {
+	case ok := <-pedido.resultado:
+		votarPrepare(w, req, ok)
 
-	for _, trechoChave := range trechosChaves {
-		transacoes.TransacaoDoTrecho[trechoChave] = req.TransacaoID
+	case <-time.After(esperaMaxima):
+		removerDaFila(pedido)
+		//pode ter sido concedido no instante do timeout se sim, os locks já estão aplicados
+		select {
+		case ok := <-pedido.resultado:
+			votarPrepare(w, req, ok)
+		default:
+			log.Printf("[PREPARE] transação %s (ts %+v) expirou na fila", req.TransacaoID, req.Timestamp)
+			votarPrepare(w, req, false)
+		}
 	}
+}
 
-	//vota sim
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(PacoteHttp{Voto: true})
+func votarPrepare(w http.ResponseWriter, req PacoteHttp, ok bool) {
+	if ok {
+		log.Printf("[PREPARE] transação %s (ts %+v) concedida", req.TransacaoID, req.Timestamp)
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(PacoteHttp{Voto: true})
+		return
+	}
+	w.WriteHeader(http.StatusConflict)
+	json.NewEncoder(w).Encode(PacoteHttp{Voto: false})
 }

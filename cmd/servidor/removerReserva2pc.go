@@ -124,7 +124,7 @@ func RemoverReserva2PC(user string, reservaID string) (bool, string) {
 				if err == nil && (status == http.StatusOK || status == http.StatusNotFound) {
 					return
 				}
-				time.Sleep(time.Duration(tentativa) * 500 * time.Millisecond)
+				time.Sleep(500 * time.Millisecond)
 			}
 			log.Printf("[REMOVER RESERVA 2PC] Servidor %d não confirmou commit da transação %s", i+1, transacaoID)
 		}(i, url)

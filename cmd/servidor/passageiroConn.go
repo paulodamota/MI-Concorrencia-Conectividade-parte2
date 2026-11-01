@@ -38,7 +38,8 @@ func PassageiroConn(encoder *json.Encoder, decoder *json.Decoder, user string) {
 					break
 				}
 
-				err := loopEscolhareserva(itinerarios, user, encoder, decoder, &req, &res)
+				ts := relogio.Carimbo()
+				err := loopEscolhareserva(itinerarios, user, encoder, decoder, &req, &res, ts)
 				if err != nil {
 					break //esse break é inutil kk
 				}
@@ -127,12 +128,12 @@ func PassageiroConn(encoder *json.Encoder, decoder *json.Decoder, user string) {
 /*
 loop para tratar a escoha da reserva do passageiro
 */
-func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.Encoder, decoder *json.Decoder, req *Request, res *Resposta) error {
+func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.Encoder, decoder *json.Decoder, req *Request, res *Resposta, ts Timestamp) error {
 	var encerrar_loop bool
 	for _, i := range itinerarios {
 		var trecho_preparado ViagemData
 
-		transacaoID, disponivel := grafo.ReservaPrepare(i) //mudança necessaria para trechos entre servidores
+		transacaoID, disponivel := ReservaPrepare(i, ts) //mudança necessaria para trechos entre servidores
 
 		servidoresParticipantes := i.Servidores
 

@@ -42,6 +42,8 @@ type PacoteHttp struct {
 	Motorista string         `json:"motorista,omitempty"`
 
 	Voto bool `json:"voto,omitempty"`
+
+	Timestamp Timestamp `json:"timestamp"`
 }
 
 var (
@@ -63,11 +65,14 @@ func IniciarServidorREST() {
 	mux.HandleFunc("POST /viagem/cancelar/commit", handlePostViagemCancelarCommit)
 	mux.HandleFunc("POST /viagem/cancelar/abort", handlePostViagemCancelarAbort)
 
-	//ao enviar requisição, espera por 500 milissegundos
+	//ao enviar requisição, espera por 200 milissegundos
 	//não havendo resposta retorna erro
 	cliente = &http.Client{
-		Timeout: 500 * time.Millisecond,
+		Timeout:   200 * time.Millisecond,
+		Transport: transporteRelogio{base: http.DefaultTransport},
 	}
+
+	IniciarEscalonador()
 
 	go func() {
 		enderecoPorta := ":" + portas[1]
@@ -75,11 +80,11 @@ func IniciarServidorREST() {
 		log.Printf("##### Servidor [REST] instância '%d' a iniciar na porta %s... #####\n", servidor, enderecoPorta)
 
 		go func() {
-			time.Sleep(5 * time.Second)
+			time.Sleep(3 * time.Second)
 		}()
 
 		//bloqueante
-		if err := http.ListenAndServe(enderecoPorta, mux); err != nil {
+		if err := http.ListenAndServe(enderecoPorta, comRelogio(mux)); err != nil {
 			log.Fatalf("Erro no servidor REST: %v", err)
 		}
 	}()

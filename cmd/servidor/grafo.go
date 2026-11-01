@@ -35,9 +35,6 @@ BuscarRotas encontra todos os itinerários possíveis entre a origem e o destino
 usando recursividade
 */
 func (g *GrafoRotas) BuscarRotas(origem string, destino string, data string) []*ViagemData {
-	g.mu.RLock()
-	defer g.mu.RUnlock()
-
 	var resultados []*ViagemData
 	caminhoAtual := []TrechoData{}
 	visitados := make(map[string]bool)
@@ -61,7 +58,9 @@ func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho
 	visitados[atual] = true
 	defer delete(visitados, atual) //permite utilizar a cidade em outros caminhos
 
+	g.mu.RLock()
 	trechosDisponiveis := TrechoSliceToTrechoDataSlice(g.Adjacencias[atual])
+	g.mu.RUnlock()
 
 	trechosServidorB, err := ComandoParaServidor("/adjacencias/", atual, GetVizinho(1))
 	if err != nil {
@@ -186,8 +185,8 @@ func (g *GrafoRotas) RemoverViagemMotorista(viagem *Viagem) []ReservaChave {
 //GRAFO funções relacionadas a api rest
 
 func (g *GrafoRotas) GetAdjacencias(origem string) []TrechoData {
-	g.mu.Lock()
-	defer g.mu.Unlock()
+	g.mu.RLock()
+	defer g.mu.RUnlock()
 
 	trechos := g.Adjacencias[origem]
 	return TrechoSliceToTrechoDataSlice(trechos)
