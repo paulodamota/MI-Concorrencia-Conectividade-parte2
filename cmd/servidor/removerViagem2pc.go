@@ -70,7 +70,7 @@ func RemoverViagem2PC(driver string, viagemID string) (bool, string) {
 	}
 	canal := make(chan voto, 3)
 	n := 0
-	for i, url := range urlsDosServidores {
+	for i, url := range cfg.GetUrls() {
 		if len(porServidor[i]) == 0 {
 			continue
 		}
@@ -118,7 +118,7 @@ func RemoverViagem2PC(driver string, viagemID string) (bool, string) {
 
 	votos := make(chan bool, 3)
 	n = 0
-	for i, url := range urlsDosServidores {
+	for i, url := range cfg.GetUrls() {
 		if len(porServidorTrechos[i]) == 0 {
 			continue
 		}
@@ -153,7 +153,7 @@ func RemoverViagem2PC(driver string, viagemID string) (bool, string) {
 
 	//++++++++++ FASE 2 ++++++++++
 	var wg sync.WaitGroup
-	for i, url := range urlsDosServidores {
+	for i, url := range cfg.GetUrls() {
 		if passageirosFlags[i] {
 			wg.Add(1)
 			go func(i int, url string) {
@@ -217,7 +217,7 @@ func liberarTransacaoLocal(transacaoID string) {
 }
 
 func abortarPassageiros(transacaoID string, servidores []bool) {
-	for i, url := range urlsDosServidores {
+	for i, url := range cfg.GetUrls() {
 		if servidores[i] {
 			go postHTTP(url+"/viagem/cancelar/abort", PacoteHttp{TransacaoID: transacaoID})
 		}

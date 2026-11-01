@@ -45,7 +45,7 @@ func RemoverReserva2PC(user string, reservaID string) (bool, string) {
 	votos := make(chan bool, 3)
 	numeroDeParticipantes := 0
 
-	for i, url := range urlsDosServidores {
+	for i, url := range cfg.GetUrls() {
 
 		//se o servidor i não participa da reserva, pula
 		if !participantes[i] {
@@ -107,7 +107,7 @@ func RemoverReserva2PC(user string, reservaID string) (bool, string) {
 
 	//++++++++++ FASE 2: COMMIT ++++++++++
 	var wg sync.WaitGroup
-	for i, url := range urlsDosServidores {
+	for i, url := range cfg.GetUrls() {
 		if !participantes[i] {
 			continue
 		}

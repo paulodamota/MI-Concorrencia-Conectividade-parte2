@@ -1,53 +1,15 @@
 {
-  "motoristas": {
-    "motorista servidor 1": {
-      "Nome": "motorista servidor 1",
-      "Senha": "123",
-      "LoggedIn": false,
-      "Notificacoes": null
-    }
-  },
+  "motoristas": {},
   "passageiros": {
     "pass": {
       "Nome": "pass",
       "Senha": "123",
       "LoggedIn": true,
       "Notificacoes": null
-    },
-    "pass1": {
-      "Nome": "pass1",
-      "Senha": "123",
-      "LoggedIn": false,
-      "Notificacoes": [
-        "Sua reserva de ID '0382b61b-a848-42d8-a3a1-4b8f9df92f96' foi cancelada pois o motorista 'motorista servidor 2' cancelou a viagem!\n Em breve você receberá reembolso de sua reserva. Agradecemos a compreensão!\n"
-      ]
     }
   },
-  "viagens_moto": {
-    "motorista servidor 1": {
-      "cbc175ed-59bf-4e14-a78b-040239dd82fd": {
-        "ID": "cbc175ed-59bf-4e14-a78b-040239dd82fd",
-        "Dono": "motorista servidor 1",
-        "Trechos": [
-          {
-            "ViagemID": "cbc175ed-59bf-4e14-a78b-040239dd82fd",
-            "ID": "0e96c0f1-4222-46da-97b8-f80b198eafec",
-            "Motorista": "motorista servidor 1",
-            "Origem": "Feira de Santana",
-            "Destino": "Salvador",
-            "Vagas": 10,
-            "Preco": 20,
-            "Data": "12-12-1212",
-            "Horario": "12",
-            "Servidor": 1,
-            "ReservasAssociadasIDS": []
-          }
-        ]
-      }
-    }
-  },
+  "viagens_moto": {},
   "reservas_pass": {
-    "pass": {},
-    "pass1": {}
+    "pass": {}
   }
 }

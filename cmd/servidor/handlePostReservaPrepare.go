@@ -26,13 +26,19 @@ func handlePostReservaPrepare(w http.ResponseWriter, r *http.Request) {
 		chegada:   time.Now(),
 		resultado: make(chan bool, 1),
 	}
+	log.Printf("[HANDLE RESERVA PREPARE 1]")
+
 	enfileirar(pedido)
+	log.Printf("[HANDLE RESERVA PREPARE 2]")
 
 	select {
 	case ok := <-pedido.resultado:
+		log.Printf("[HANDLE RESERVA PREPARE 3]")
 		votarPrepare(w, req, ok)
 
 	case <-time.After(esperaMaxima):
+		log.Printf("[HANDLE RESERVA PREPARE 4]")
+
 		removerDaFila(pedido)
 		//pode ter sido concedido no instante do timeout se sim, os locks já estão aplicados
 		select {
@@ -46,6 +52,8 @@ func handlePostReservaPrepare(w http.ResponseWriter, r *http.Request) {
 }
 
 func votarPrepare(w http.ResponseWriter, req PacoteHttp, ok bool) {
+	log.Printf("[HANDLE RESERVA PREPARE 5]")
+
 	if ok {
 		log.Printf("[PREPARE] transação %s (ts %+v) concedida", req.TransacaoID, req.Timestamp)
 		w.WriteHeader(http.StatusOK)

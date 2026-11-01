@@ -26,9 +26,6 @@ var (
 	ReservasPass = NovoReservas()
 
 	transacoes = InicializarTransacoes()
-
-	//urls dos Servidores
-	urlsDosServidores []string
 )
 
 // variaveis globais temporarias enquanto refatoro tudo

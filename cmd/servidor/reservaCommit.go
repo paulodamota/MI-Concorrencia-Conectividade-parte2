@@ -19,7 +19,7 @@ func ReservaCommit(transacaoID string, passageiro string, servidores []bool) {
 		},
 	})
 
-	for i, url := range urlsDosServidores {
+	for i, url := range cfg.GetUrls() {
 		if servidores[i] {
 			go cliente.Post(url+"/reserva/commit", "application/json", bytes.NewBuffer(body))
 		}

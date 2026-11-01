@@ -1,93 +1,30 @@
-2026/10/31 00:40:34 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/31 00:40:34 === SERVIDOR INICIADO ===
-2026/10/31 00:44:33 Novo Motorista "motorista servidor 2" cadastrado com senha '123'
-2026/10/31 00:45:40 Lista de trechos enviada pelo motorista 'motorista servidor 2' 
+2026/11/01 03:15:07 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
+2026/11/01 03:15:07 === SERVIDOR INICIADO ===
+2026/11/01 03:15:23 Novo Motorista "moto" cadastrado com senha '123'
+2026/11/01 03:15:38 Lista de trechos enviada pelo motorista 'moto' 
 Paradas 1
-2026/10/31 00:46:13 Requisição recebida para a cidade: Feira de Santana
-2026/10/31 00:46:13 Adjacencias para Feira de Santana: []
-2026/10/31 00:46:15 Requisição recebida para a cidade: Salvador
-2026/10/31 00:46:15 Adjacencias para Salvador: []
-2026/10/31 00:48:27 Conexão de motorista 'motorista servidor 2' encerrada no handle com erro: EOF
-2026/10/31 00:48:27 Conexão encerrada no menu principal: EOF
-2026/10/31 00:48:54 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/31 00:48:54 === SERVIDOR INICIADO ===
-2026/10/31 00:50:20 Requisição recebida para a cidade: Feira de Santana
-2026/10/31 00:50:20 Adjacencias para Feira de Santana: []
-2026/10/31 00:50:22 Requisição recebida para a cidade: Salvador
-2026/10/31 00:50:22 Adjacencias para Salvador: []
-2026/10/31 00:51:11 Motorista "motorista servidor 2" fez login
-2026/10/31 00:52:00 Lista de trechos enviada pelo motorista 'motorista servidor 2' 
-Paradas 1
-2026/10/31 00:53:51 Requisição recebida para a cidade: Feira de Santana
-2026/10/31 00:53:51 Adjacencias para Feira de Santana: []
-2026/10/31 00:53:53 Requisição recebida para a cidade: Salvador
-2026/10/31 00:53:53 Adjacencias para Salvador: [{5a24610b-8570-4b0f-adee-800505899a90 71d513d4-fbbe-4461-bd66-52749916c2d7 motorista servidor 2 Salvador Belo Horizonte 13 13 11-11-1111 11 2 []}]
-2026/10/31 00:53:55 [HANDLE RESERVA PREPARE] 1
-2026/10/31 00:53:55 [HANDLE RESERVA PREPARE] 2
-2026/10/31 00:53:55 [HANDLE RESERVA PREPARE] 4
-2026/10/31 00:54:05 Transação b1ec553c-c173-42fa-ab3a-1a750269e7fe abortada com sucesso
-2026/10/31 01:05:47 Requisição recebida para a cidade: Feira de Santana
-2026/10/31 01:05:47 Adjacencias para Feira de Santana: []
-2026/10/31 01:05:49 Requisição recebida para a cidade: Salvador
-2026/10/31 01:05:49 Adjacencias para Salvador: [{5a24610b-8570-4b0f-adee-800505899a90 71d513d4-fbbe-4461-bd66-52749916c2d7 motorista servidor 2 Salvador Belo Horizonte 13 13 11-11-1111 11 2 []}]
-2026/10/31 01:05:51 [HANDLE RESERVA PREPARE] 1
-2026/10/31 01:05:51 [HANDLE RESERVA PREPARE] 2
-2026/10/31 01:05:51 [HANDLE RESERVA PREPARE] 4
-2026/10/31 01:06:02 Transação b6069d3a-43ed-4a79-969a-4bc3eb00f228 confirmada com sucesso
-2026/10/31 01:15:41 [REMOVER COMMIT] transação bbafae7c-35b3-4573-821b-7820ac55d2de confirmada
-2026/10/31 01:16:34 Requisição recebida para a cidade: Feira de Santana
-2026/10/31 01:16:34 Adjacencias para Feira de Santana: []
-2026/10/31 01:16:36 Requisição recebida para a cidade: Salvador
-2026/10/31 01:16:36 Adjacencias para Salvador: [{5a24610b-8570-4b0f-adee-800505899a90 71d513d4-fbbe-4461-bd66-52749916c2d7 motorista servidor 2 Salvador Belo Horizonte 13 13 11-11-1111 11 2 []}]
-2026/10/31 01:16:38 [HANDLE RESERVA PREPARE] 1
-2026/10/31 01:16:38 [HANDLE RESERVA PREPARE] 2
-2026/10/31 01:16:38 [HANDLE RESERVA PREPARE] 4
-2026/10/31 01:17:19 Transação 0382b61b-a848-42d8-a3a1-4b8f9df92f96 confirmada com sucesso
-2026/10/31 01:21:39 Solicitação de remoção de viagem de id: '71d513d4-fbbe-4461-bd66-52749916c2d7' , pelo motorista 'motorista servidor 2'
-2026/10/31 01:21:39 [REMOVER VIAGEM 2PC] viagem 71d513d4-fbbe-4461-bd66-52749916c2d7 do motorista 'motorista servidor 2' removida; 1 reservas canceladas (transação 942500c1-b45d-4980-af04-6a3497a62c78)
-2026/10/31 23:03:10 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/31 23:03:10 === SERVIDOR INICIADO ===
-2026/10/31 23:04:01 Requisição recebida para a cidade: Feira de Santana
-2026/10/31 23:04:01 Adjacencias para Feira de Santana: []
-2026/10/31 23:04:01 Requisição recebida para a cidade: Salvador
-2026/10/31 23:04:01 Adjacencias para Salvador: []
-2026/10/31 23:06:21 Novo Motorista "moto" cadastrado com senha '123'
-2026/10/31 23:06:59 Lista de trechos enviada pelo motorista 'moto' 
-Paradas 1
-2026/10/31 23:07:29 Requisição recebida para a cidade: Feira de Santana
-2026/10/31 23:07:29 Adjacencias para Feira de Santana: [{e114836c-567f-4ff5-b289-c15c16e24ead aee2edeb-563e-4d49-8a4c-f722c541d82c moto Feira de Santana Belo Horizonte 21 10 12-12-1212 12 2 []}]
-2026/10/31 23:07:29 Requisição recebida para a cidade: Salvador
-2026/10/31 23:07:29 Adjacencias para Salvador: []
-2026/10/31 23:07:29 Requisição recebida para a cidade: Belo Horizonte
-2026/10/31 23:07:29 Adjacencias para Belo Horizonte: [{d8a3b6fa-c87a-40c6-baa1-6885120fe68a ed956c72-cba9-4d99-9d6a-de7e09bf6cde motorista servidor 2 Belo Horizonte Uberlândia 12 15 12-12-1212 12 2 []}]
-2026/10/31 23:07:30 [PREPARE] transação dbd16b16-9d8a-437f-976a-e630b9f6899d (ts {Tempo:21 Servidor:1}) concedida
-2026/10/31 23:15:03 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/31 23:15:03 === SERVIDOR INICIADO ===
-2026/10/31 23:15:30 Requisição recebida para a cidade: Feira de Santana
-2026/10/31 23:15:30 Adjacencias para Feira de Santana: [{e114836c-567f-4ff5-b289-c15c16e24ead aee2edeb-563e-4d49-8a4c-f722c541d82c moto Feira de Santana Belo Horizonte 21 10 12-12-1212 12 2 []}]
-2026/10/31 23:15:30 Requisição recebida para a cidade: Salvador
-2026/10/31 23:15:30 Adjacencias para Salvador: []
-2026/10/31 23:15:30 Requisição recebida para a cidade: Belo Horizonte
-2026/10/31 23:15:30 Adjacencias para Belo Horizonte: [{d8a3b6fa-c87a-40c6-baa1-6885120fe68a ed956c72-cba9-4d99-9d6a-de7e09bf6cde motorista servidor 2 Belo Horizonte Uberlândia 12 15 12-12-1212 12 2 []}]
-2026/10/31 23:15:30 [PREPARE] transação 2d55f3c9-5ce8-4c76-bc2a-7c7a2e6832c9 (ts {Tempo:13 Servidor:1}) expirou na fila
-2026/10/31 23:24:18 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/10/31 23:24:18 === SERVIDOR INICIADO ===
-2026/10/31 23:24:34 Requisição recebida para a cidade: Feira de Santana
-2026/10/31 23:24:34 Adjacencias para Feira de Santana: [{e114836c-567f-4ff5-b289-c15c16e24ead aee2edeb-563e-4d49-8a4c-f722c541d82c moto Feira de Santana Belo Horizonte 21 10 12-12-1212 12 2 []}]
-2026/10/31 23:24:34 Requisição recebida para a cidade: Salvador
-2026/10/31 23:24:34 Adjacencias para Salvador: []
-2026/10/31 23:24:34 Requisição recebida para a cidade: Belo Horizonte
-2026/10/31 23:24:34 Adjacencias para Belo Horizonte: [{d8a3b6fa-c87a-40c6-baa1-6885120fe68a ed956c72-cba9-4d99-9d6a-de7e09bf6cde motorista servidor 2 Belo Horizonte Uberlândia 12 15 12-12-1212 12 2 []}]
-2026/10/31 23:24:35 [PREPARE] transação 28fd0b83-93ea-404a-be0d-27c4522a9c98 (ts {Tempo:13 Servidor:1}) concedida
-2026/10/31 23:25:04 Transação 28fd0b83-93ea-404a-be0d-27c4522a9c98 confirmada com sucesso
-2026/11/01 02:57:06 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
-2026/11/01 02:57:06 === SERVIDOR INICIADO ===
-2026/11/01 02:57:31 Motorista "moto" fez login
-2026/11/01 02:59:24 Solicitação de remoção de viagem de id: 'aee2edeb-563e-4d49-8a4c-f722c541d82c' , pelo motorista 'moto'
-2026/11/01 02:59:24 [REMOVER VIAGEM 2PC] viagem aee2edeb-563e-4d49-8a4c-f722c541d82c do motorista 'moto' removida; 1 reservas canceladas (transação d72a4ff6-6972-458c-9718-9c4b01fe878c)
-2026/11/01 03:01:47 Lista de trechos enviada pelo motorista 'moto' 
-Paradas 1
-2026/11/01 03:02:14 Requisição recebida para a cidade: Feira de Santana
-2026/11/01 03:02:14 Adjacencias para Feira de Santana: [{8a662101-a35b-4785-9337-5bb8e72aee9f 4936d863-7186-4c6d-a0d7-710ea4aa33d3 moto Feira de Santana Uberlândia 12 12 12-12-1212 12 2 []}]
-2026/11/01 03:02:14 Requisição recebida para a cidade: Salvador
-2026/11/01 03:02:14 Adjacencias para Salvador: []
+2026/11/01 03:15:58 Requisição recebida para a cidade: Feira de Santana
+2026/11/01 03:15:58 Adjacencias para Feira de Santana: [{d44421f5-8ae8-4c62-80eb-5a23c7a5c795 558adf04-afe9-44ea-9d31-1264f1a2de18 moto Feira de Santana Uberlândia 12 12 12-12-1212 12 2 []}]
+2026/11/01 03:20:00 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
+2026/11/01 03:20:00 === SERVIDOR INICIADO ===
+2026/11/01 03:20:21 Motorista "moto" fez login
+2026/11/01 03:20:31 Requisição recebida para a cidade: Feira de Santana
+2026/11/01 03:20:31 Adjacencias para Feira de Santana: [{d44421f5-8ae8-4c62-80eb-5a23c7a5c795 558adf04-afe9-44ea-9d31-1264f1a2de18 moto Feira de Santana Uberlândia 12 12 12-12-1212 12 2 []}]
+2026/11/01 03:22:49 Conexão de motorista 'moto' encerrada no handle com erro: EOF
+2026/11/01 03:22:49 Conexão encerrada no menu principal: EOF
+2026/11/01 03:23:23 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
+2026/11/01 03:23:23 === SERVIDOR INICIADO ===
+2026/11/01 03:23:47 Requisição recebida para a cidade: Feira de Santana
+2026/11/01 03:23:47 Adjacencias para Feira de Santana: [{d44421f5-8ae8-4c62-80eb-5a23c7a5c795 558adf04-afe9-44ea-9d31-1264f1a2de18 moto Feira de Santana Uberlândia 12 12 12-12-1212 12 2 []}]
+2026/11/01 03:31:26 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
+2026/11/01 03:31:26 === SERVIDOR INICIADO ===
+2026/11/01 03:32:07 Requisição recebida para a cidade: Feira de Santana
+2026/11/01 03:32:07 Adjacencias para Feira de Santana: [{d44421f5-8ae8-4c62-80eb-5a23c7a5c795 558adf04-afe9-44ea-9d31-1264f1a2de18 moto Feira de Santana Uberlândia 12 12 12-12-1212 12 2 []}]
+2026/11/01 03:32:07 [HANDLE RESERVA PREPARE 1]
+2026/11/01 03:32:07 [HANDLE RESERVA PREPARE 2]
+2026/11/01 03:32:07 [HANDLE RESERVA PREPARE 3]
+2026/11/01 03:32:07 [HANDLE RESERVA PREPARE 5]
+2026/11/01 03:32:07 [PREPARE] transação 956c26de-c37b-46e4-bdff-4608edf22f2d (ts {Tempo:5 Servidor:1}) concedida
+2026/11/01 03:32:17 Transação 956c26de-c37b-46e4-bdff-4608edf22f2d confirmada com sucesso
+2026/11/01 03:32:31 Motorista "moto" fez login
+2026/11/01 03:32:42 [REMOVER COMMIT] transação 9c5e96a2-d5e3-4777-899a-8a7afd7d3e13 confirmada

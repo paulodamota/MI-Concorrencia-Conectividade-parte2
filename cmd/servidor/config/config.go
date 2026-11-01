@@ -38,8 +38,8 @@ type Config struct {
 	PortaTCP   string
 	PortaHTTP  string
 
-	enderecos [3]string
 	urls      []string
+	enderecos [3]string
 }
 
 // lê as variáveis de ambiente id deste servidor, endereco1, endereco2, endereco3 (endereços desse e dos outros servidores)
@@ -74,6 +74,9 @@ func (c *Config) URLHTTP(serv int) string {
 	}
 	return "http://" + c.enderecos[serv-1] + ":" + portas[serv][1]
 }
+
+// devolve as urls, vai que eu altero sem querer sadesgraca
+func (c *Config) GetUrls() []string { return c.urls }
 
 // devolve o id do vizinho deste servidor ou 0 se inválido
 func (c *Config) Vizinho(n int) int {
