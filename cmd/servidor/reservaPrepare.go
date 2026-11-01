@@ -9,6 +9,8 @@ import (
 
 	"github.com/google/uuid"
 
+	. "vaijunto/cmd/servidor/protocoloREST"
+	. "vaijunto/cmd/servidor/relogioLogico"
 	. "vaijunto/shared"
 )
 

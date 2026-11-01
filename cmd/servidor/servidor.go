@@ -7,7 +7,10 @@ import (
 	"net"
 	"sync"
 	"time"
+
 	"vaijunto/cmd/servidor/config"
+	"vaijunto/cmd/servidor/relogioLogico"
+
 	. "vaijunto/shared"
 )
 
@@ -30,7 +33,8 @@ var (
 
 // variaveis globais temporarias enquanto refatoro tudo
 var (
-	cfg *config.Config
+	cfg              *config.Config
+	relogioDeLamport *relogioLogico.RelogioLogico
 )
 
 func main() {
@@ -42,6 +46,9 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
+	//
+	relogioDeLamport = relogioLogico.New(cfg.ServidorID)
 
 	//carrega os dados salvos
 	Carregar()

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 
+	. "vaijunto/cmd/servidor/protocoloREST"
 	. "vaijunto/shared"
 )
 

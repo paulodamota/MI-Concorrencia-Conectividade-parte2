@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	. "vaijunto/cmd/servidor/relogioLogico"
 	. "vaijunto/shared"
 )
 
@@ -38,7 +39,7 @@ func PassageiroConn(encoder *json.Encoder, decoder *json.Decoder, user string) {
 					break
 				}
 
-				ts := relogio.Carimbo()
+				ts := relogioDeLamport.Carimbo()
 				err := loopEscolhareserva(itinerarios, user, encoder, decoder, &req, &res, ts)
 				if err != nil {
 					break //esse break é inutil kk

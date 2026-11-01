@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	. "vaijunto/cmd/servidor/protocoloREST"
 )
 
 func handlePostReservaCommit(w http.ResponseWriter, r *http.Request) {

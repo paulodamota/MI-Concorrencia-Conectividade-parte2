@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 
+	. "vaijunto/cmd/servidor/protocoloREST"
 	. "vaijunto/shared"
 )
 

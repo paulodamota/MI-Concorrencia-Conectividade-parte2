@@ -1,91 +1,16 @@
 package main
 
 import (
-	"net/http"
 	"sort"
-	"strconv"
 	"sync"
 	"time"
+
+	. "vaijunto/cmd/servidor/relogioLogico"
 )
 
-type RelogioLamport struct {
-	mu    sync.Mutex
-	tempo int64
-}
-
-var relogio = &RelogioLamport{}
-
-// evento local / envio
-func (r *RelogioLamport) Evento() int64 {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.tempo++
-	return r.tempo
-}
-
-// recebimento de mensagem com o carimbo t
-func (r *RelogioLamport) Receber(t int64) int64 {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if t > r.tempo {
-		r.tempo = t
-	}
-	r.tempo++
-	return r.tempo
-}
-
-/*
-carimbo de uma requisição de usuário. É criado UMA vez, no servidor que recebeu
-a requisição do cliente, e viaja junto com a transação até os participantes.
-*/
-type Timestamp struct {
-	Tempo    int64 `json:"tempo"`
-	Servidor int   `json:"servidor"`
-}
-
-func (r *RelogioLamport) Carimbo() Timestamp {
-	return Timestamp{Tempo: r.Evento(), Servidor: cfg.ServidorID}
-}
-
-// true se a vem antes de b na ordem total
-func (a Timestamp) Antes(b Timestamp) bool {
-	if a.Tempo != b.Tempo {
-		return a.Tempo < b.Tempo
-	}
-	return a.Servidor < b.Servidor
-}
-
-// cliente: carimba toda requisição enviada e atualiza o relógio com a resposta
-type transporteRelogio struct{ base http.RoundTripper }
-
-func (t transporteRelogio) RoundTrip(req *http.Request) (*http.Response, error) {
-	req = req.Clone(req.Context()) //RoundTripper não deve alterar a requisição original
-	req.Header.Set("X-Relogio", strconv.FormatInt(relogio.Evento(), 10))
-
-	resp, err := t.base.RoundTrip(req)
-	if err == nil {
-		if v, e := strconv.ParseInt(resp.Header.Get("X-Relogio"), 10, 64); e == nil {
-			relogio.Receber(v)
-		}
-	}
-	return resp, err
-}
-
-// servidor: atualiza o relógio ao receber e devolve o valor no header da resposta
-func comRelogio(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var t int64
-		if v, err := strconv.ParseInt(r.Header.Get("X-Relogio"), 10, 64); err == nil {
-			t = v
-		}
-		w.Header().Set("X-Relogio", strconv.FormatInt(relogio.Receber(t), 10))
-		next.ServeHTTP(w, r)
-	})
-}
-
 const (
-	janelaOrdenacao = 50 * time.Millisecond  // assume que o atraso de rede entre servidores é menor que isso
-	esperaMaxima    = 130 * time.Millisecond // menor que o timeout de 2s do cliente HTTP
+	janelaOrdenacao = 50 * time.Millisecond
+	esperaMaxima    = 130 * time.Millisecond
 )
 
 type pedidoReserva struct {

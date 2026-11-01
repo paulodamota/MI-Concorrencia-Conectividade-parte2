@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	. "vaijunto/shared"
+	. "vaijunto/cmd/servidor/protocoloREST"
 )
 
 type Transacoes struct {
@@ -33,19 +33,6 @@ func InicializarTransacoes() *Transacoes {
 
 //funções da api rest para comunicação entre servidores
 
-type PacoteHttp struct {
-	Trechos     []TrechoData `json:"trechos,omitempty"`
-	TransacaoID string       `json:"transacaoid,omitempty"`
-	Reserva     ReservaChave `json:"passageiro,omitempty"`
-
-	Reservas  []ReservaChave `json:"reservas,omitempty"`
-	Motorista string         `json:"motorista,omitempty"`
-
-	Voto bool `json:"voto,omitempty"`
-
-	Timestamp Timestamp `json:"timestamp"`
-}
-
 var (
 	// cliente HTTP para fazer requisições com timeout
 	cliente *http.Client
@@ -69,7 +56,7 @@ func IniciarServidorREST() {
 	//não havendo resposta retorna erro
 	cliente = &http.Client{
 		Timeout:   200 * time.Millisecond,
-		Transport: transporteRelogio{base: http.DefaultTransport},
+		Transport: relogioDeLamport.Transporte(http.DefaultTransport),
 	}
 
 	IniciarEscalonador()
@@ -84,7 +71,7 @@ func IniciarServidorREST() {
 		}()
 
 		//bloqueante
-		if err := http.ListenAndServe(enderecoPorta, comRelogio(mux)); err != nil {
+		if err := http.ListenAndServe(enderecoPorta, relogioDeLamport.Middleware(mux)); err != nil {
 			log.Fatalf("Erro no servidor REST: %v", err)
 		}
 	}()

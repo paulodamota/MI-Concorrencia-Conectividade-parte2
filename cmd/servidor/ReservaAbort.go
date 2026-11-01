@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"log"
+
+	. "vaijunto/cmd/servidor/protocoloREST"
 )
 
 func ReservaAbort(transacaoID string, servidores []bool) {

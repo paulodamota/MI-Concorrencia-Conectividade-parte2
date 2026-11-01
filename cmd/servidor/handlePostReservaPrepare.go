@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	. "vaijunto/cmd/servidor/protocoloREST"
 )
 
 func handlePostReservaPrepare(w http.ResponseWriter, r *http.Request) {
