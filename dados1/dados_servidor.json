@@ -47,45 +47,7 @@
     }
   },
   "reservas_pass": {
-    "pass": {
-      "28fd0b83-93ea-404a-be0d-27c4522a9c98": {
-        "id": "28fd0b83-93ea-404a-be0d-27c4522a9c98",
-        "dono": "",
-        "trechos": [
-          {
-            "id": "e114836c-567f-4ff5-b289-c15c16e24ead",
-            "viagemid": "aee2edeb-563e-4d49-8a4c-f722c541d82c",
-            "motorista": "moto",
-            "origem": "Feira de Santana",
-            "destino": "Belo Horizonte",
-            "vagas": 21,
-            "preco": 10,
-            "data": "12-12-1212",
-            "horario": "12",
-            "servidor": 2,
-            "viagensAssociadasids": null
-          },
-          {
-            "id": "d8a3b6fa-c87a-40c6-baa1-6885120fe68a",
-            "viagemid": "ed956c72-cba9-4d99-9d6a-de7e09bf6cde",
-            "motorista": "motorista servidor 2",
-            "origem": "Belo Horizonte",
-            "destino": "Uberlândia",
-            "vagas": 12,
-            "preco": 15,
-            "data": "12-12-1212",
-            "horario": "12",
-            "servidor": 2,
-            "viagensAssociadasids": null
-          }
-        ],
-        "servidores": [
-          false,
-          true,
-          false
-        ]
-      }
-    },
+    "pass": {},
     "pass1": {}
   }
 }

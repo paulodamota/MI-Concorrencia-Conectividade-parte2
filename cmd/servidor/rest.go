@@ -75,9 +75,9 @@ func IniciarServidorREST() {
 	IniciarEscalonador()
 
 	go func() {
-		enderecoPorta := ":" + portas[1]
+		enderecoPorta := ":" + cfg.PortaHTTP
 
-		log.Printf("##### Servidor [REST] instância '%d' a iniciar na porta %s... #####\n", servidor, enderecoPorta)
+		log.Printf("##### Servidor [REST] instância '%d' a iniciar na porta %s... #####\n", cfg.ServidorID, enderecoPorta)
 
 		go func() {
 			time.Sleep(3 * time.Second)
@@ -110,7 +110,7 @@ func handleGetAdjacencias(w http.ResponseWriter, r *http.Request) {
 // get apenas por agora
 func ComandoParaServidor(comando string, mensagem string, Destinatario int) (*PacoteHttp, error) {
 
-	url := GetURLHTTP(Destinatario) + comando + mensagem
+	url := cfg.URLHTTP(Destinatario) + comando + mensagem
 
 	log.Printf("\n url: %s", url)
 

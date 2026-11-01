@@ -44,7 +44,7 @@ type Timestamp struct {
 }
 
 func (r *RelogioLamport) Carimbo() Timestamp {
-	return Timestamp{Tempo: r.Evento(), Servidor: servidor}
+	return Timestamp{Tempo: r.Evento(), Servidor: cfg.ServidorID}
 }
 
 // true se a vem antes de b na ordem total

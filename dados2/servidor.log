@@ -80,3 +80,14 @@ Paradas 1
 2026/10/31 23:24:34 Adjacencias para Belo Horizonte: [{d8a3b6fa-c87a-40c6-baa1-6885120fe68a ed956c72-cba9-4d99-9d6a-de7e09bf6cde motorista servidor 2 Belo Horizonte Uberlândia 12 15 12-12-1212 12 2 []}]
 2026/10/31 23:24:35 [PREPARE] transação 28fd0b83-93ea-404a-be0d-27c4522a9c98 (ts {Tempo:13 Servidor:1}) concedida
 2026/10/31 23:25:04 Transação 28fd0b83-93ea-404a-be0d-27c4522a9c98 confirmada com sucesso
+2026/11/01 02:57:06 ##### Servidor [REST] instância '2' a iniciar na porta :2929... #####
+2026/11/01 02:57:06 === SERVIDOR INICIADO ===
+2026/11/01 02:57:31 Motorista "moto" fez login
+2026/11/01 02:59:24 Solicitação de remoção de viagem de id: 'aee2edeb-563e-4d49-8a4c-f722c541d82c' , pelo motorista 'moto'
+2026/11/01 02:59:24 [REMOVER VIAGEM 2PC] viagem aee2edeb-563e-4d49-8a4c-f722c541d82c do motorista 'moto' removida; 1 reservas canceladas (transação d72a4ff6-6972-458c-9718-9c4b01fe878c)
+2026/11/01 03:01:47 Lista de trechos enviada pelo motorista 'moto' 
+Paradas 1
+2026/11/01 03:02:14 Requisição recebida para a cidade: Feira de Santana
+2026/11/01 03:02:14 Adjacencias para Feira de Santana: [{8a662101-a35b-4785-9337-5bb8e72aee9f 4936d863-7186-4c6d-a0d7-710ea4aa33d3 moto Feira de Santana Uberlândia 12 12 12-12-1212 12 2 []}]
+2026/11/01 03:02:14 Requisição recebida para a cidade: Salvador
+2026/11/01 03:02:14 Adjacencias para Salvador: []

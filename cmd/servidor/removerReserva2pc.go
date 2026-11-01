@@ -37,9 +37,9 @@ func RemoverReserva2PC(user string, reservaID string) (bool, string) {
 
 	transacaoID := uuid.New().String()
 	//constroi a chave dessa reserva
-	chave := ReservaChave{ReservaID: reservaID, User: user, Servidor: servidor}
+	chave := ReservaChave{ReservaID: reservaID, User: user, Servidor: cfg.ServidorID}
 
-	//++++++++++ FASE 1: PREPARE ++++++++++
+	//prepare
 	// o wait group foi dispensavel pq o canal com buffer é bloqueante
 	// e sei quantos votos espero como resposta
 	votos := make(chan bool, 3)

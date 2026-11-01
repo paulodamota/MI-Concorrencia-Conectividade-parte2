@@ -62,16 +62,16 @@ func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho
 	trechosDisponiveis := TrechoSliceToTrechoDataSlice(g.Adjacencias[atual])
 	g.mu.RUnlock()
 
-	trechosServidorB, err := ComandoParaServidor("/adjacencias/", atual, GetVizinho(1))
+	trechosServidorB, err := ComandoParaServidor("/adjacencias/", atual, cfg.Vizinho(1))
 	if err != nil {
-		log.Printf("[GRAFO] Erro ao buscar adjacências do servidor %d: %v", GetVizinho(1), err)
+		log.Printf("[GRAFO] Erro ao buscar adjacências do servidor %d: %v", cfg.Vizinho(1), err)
 	} else {
 		trechosDisponiveis = append(trechosDisponiveis, trechosServidorB.Trechos...)
 	}
 
-	trechosServidorC, err := ComandoParaServidor("/adjacencias/", atual, GetVizinho(2))
+	trechosServidorC, err := ComandoParaServidor("/adjacencias/", atual, cfg.Vizinho(2))
 	if err != nil {
-		log.Printf("[GRAFO] Erro ao buscar adjacências do servidor %d: %v", GetVizinho(2), err)
+		log.Printf("[GRAFO] Erro ao buscar adjacências do servidor %d: %v", cfg.Vizinho(2), err)
 	} else {
 		trechosDisponiveis = append(trechosDisponiveis, trechosServidorC.Trechos...)
 	}

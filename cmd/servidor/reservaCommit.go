@@ -14,7 +14,7 @@ func ReservaCommit(transacaoID string, passageiro string, servidores []bool) {
 		TransacaoID: transacaoID,
 		Reserva: ReservaChave{
 			ReservaID: transacaoID,
-			Servidor:  servidor,
+			Servidor:  cfg.ServidorID,
 			User:      passageiro,
 		},
 	})

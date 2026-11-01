@@ -3,7 +3,7 @@
     "moto": {
       "Nome": "moto",
       "Senha": "123",
-      "LoggedIn": false,
+      "LoggedIn": true,
       "Notificacoes": null
     },
     "motorista servidor 2": {
@@ -16,28 +16,22 @@
   "passageiros": {},
   "viagens_moto": {
     "moto": {
-      "aee2edeb-563e-4d49-8a4c-f722c541d82c": {
-        "ID": "aee2edeb-563e-4d49-8a4c-f722c541d82c",
+      "4936d863-7186-4c6d-a0d7-710ea4aa33d3": {
+        "ID": "4936d863-7186-4c6d-a0d7-710ea4aa33d3",
         "Dono": "moto",
         "Trechos": [
           {
-            "ViagemID": "aee2edeb-563e-4d49-8a4c-f722c541d82c",
-            "ID": "e114836c-567f-4ff5-b289-c15c16e24ead",
+            "ViagemID": "4936d863-7186-4c6d-a0d7-710ea4aa33d3",
+            "ID": "8a662101-a35b-4785-9337-5bb8e72aee9f",
             "Motorista": "moto",
             "Origem": "Feira de Santana",
-            "Destino": "Belo Horizonte",
-            "Vagas": 20,
-            "Preco": 10,
+            "Destino": "Uberlândia",
+            "Vagas": 12,
+            "Preco": 12,
             "Data": "12-12-1212",
             "Horario": "12",
             "Servidor": 2,
-            "ReservasAssociadasIDS": [
-              {
-                "id": "28fd0b83-93ea-404a-be0d-27c4522a9c98",
-                "user": "pass",
-                "servidor": 1
-              }
-            ]
+            "ReservasAssociadasIDS": null
           }
         ]
       }
