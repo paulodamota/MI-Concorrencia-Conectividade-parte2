@@ -15,13 +15,10 @@ func handlePostReservaCommit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	transacoes.mu.Lock()
-	defer transacoes.mu.Unlock()
-
-	trechosChaves, existe := transacoes.TrechosDaTransacao[req.TransacaoID]
-
+	trechosChaves, existe := transacoes.Liberar(req.TransacaoID)
 	if !existe {
-		http.Error(w, "Transação não encontrada", http.StatusNotFound)
+		log.Printf("[COMMIT] Transação %s rejeitada: expirou por timeout ou não foi encontrada", req.TransacaoID)
+		http.Error(w, "Transação não encontrada ou expirada", http.StatusNotFound)
 		return
 	}
 
@@ -53,11 +50,6 @@ func handlePostReservaCommit(w http.ResponseWriter, r *http.Request) {
 		}
 		viagem.mu.Unlock()
 	}
-
-	for _, trechoChave := range trechosChaves {
-		delete(transacoes.TransacaoDoTrecho, trechoChave)
-	}
-	delete(transacoes.TrechosDaTransacao, req.TransacaoID)
 
 	//vota sim
 	w.WriteHeader(http.StatusOK)

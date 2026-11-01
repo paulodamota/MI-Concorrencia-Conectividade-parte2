@@ -86,23 +86,20 @@ func processarFila() {
 // decidido=false: trecho ocupado, continua esperando
 func tentarConceder(p *pedidoReserva) (concedido bool, decidido bool) {
 	transacoes.mu.Lock()
-	defer transacoes.mu.Unlock()
-
 	for _, tc := range p.chaves {
 		if _, ocupado := transacoes.TransacaoDoTrecho[tc]; ocupado {
+			transacoes.mu.Unlock()
 			return false, false
 		}
 	}
+	transacoes.mu.Unlock()
 
 	//viagem removida ou sem vagas: NÃO definitivo
 	if !temVaga(p.chaves) {
 		return false, true
 	}
 
-	transacoes.TrechosDaTransacao[p.id] = p.chaves
-	for _, tc := range p.chaves {
-		transacoes.TransacaoDoTrecho[tc] = p.id
-	}
+	transacoes.TravarComTimeout(p.id, p.chaves, timeoutTransacaoPadrao)
 	return true, true
 }
 

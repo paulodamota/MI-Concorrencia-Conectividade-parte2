@@ -184,7 +184,7 @@ func RemoverViagem2PC(driver string, viagemID string) (bool, string) {
 	return true, fmt.Sprintf("Viagem removida com sucesso. %d reserva(s) de passageiros foram canceladas.", len(todas))
 }
 
-// trava (atomicamente) todos os trechos da viagem no mapa de transações deste servidor
+// trava (atomicamente) todos os trechos da viagem no mapa de transações deste servidor com timeout
 func travarTrechosLocais(transacaoID string, driver string, v *Viagem) bool {
 	chaves := make([]TrechoChaves, len(v.Trechos))
 	for i, t := range v.Trechos {
@@ -192,29 +192,20 @@ func travarTrechosLocais(transacaoID string, driver string, v *Viagem) bool {
 	}
 
 	transacoes.mu.Lock()
-	defer transacoes.mu.Unlock()
-
 	for _, tc := range chaves {
 		if _, ocupado := transacoes.TransacaoDoTrecho[tc]; ocupado {
+			transacoes.mu.Unlock()
 			return false
 		}
 	}
+	transacoes.mu.Unlock()
 
-	transacoes.TrechosDaTransacao[transacaoID] = chaves
-	for _, tc := range chaves {
-		transacoes.TransacaoDoTrecho[tc] = transacaoID
-	}
+	transacoes.TravarComTimeout(transacaoID, chaves, timeoutTransacaoPadrao)
 	return true
 }
 
 func liberarTransacaoLocal(transacaoID string) {
-	transacoes.mu.Lock()
-	defer transacoes.mu.Unlock()
-
-	for _, tc := range transacoes.TrechosDaTransacao[transacaoID] {
-		delete(transacoes.TransacaoDoTrecho, tc)
-	}
-	delete(transacoes.TrechosDaTransacao, transacaoID)
+	transacoes.Liberar(transacaoID)
 }
 
 func abortarPassageiros(transacaoID string, servidores []bool) {
@@ -242,7 +233,11 @@ func commitComRetry(url string, pacote PacoteHttp, transacaoID string, servidorD
 var cancelamentos = struct {
 	mu           sync.Mutex
 	porTransacao map[string][]ReservaChave
-}{porTransacao: make(map[string][]ReservaChave)}
+	timers       map[string]*time.Timer
+}{
+	porTransacao: make(map[string][]ReservaChave),
+	timers:       make(map[string]*time.Timer),
+}
 
 // prepare: registra as reservas e devolve os trechos delas ao coordenador
 func handlePostViagemCancelarPrepare(w http.ResponseWriter, r *http.Request) {
@@ -263,6 +258,16 @@ func handlePostViagemCancelarPrepare(w http.ResponseWriter, r *http.Request) {
 
 	cancelamentos.mu.Lock()
 	cancelamentos.porTransacao[req.TransacaoID] = req.Reservas
+	if t, ok := cancelamentos.timers[req.TransacaoID]; ok {
+		t.Stop()
+	}
+	cancelamentos.timers[req.TransacaoID] = time.AfterFunc(timeoutTransacaoPadrao, func() {
+		cancelamentos.mu.Lock()
+		defer cancelamentos.mu.Unlock()
+		delete(cancelamentos.porTransacao, req.TransacaoID)
+		delete(cancelamentos.timers, req.TransacaoID)
+		log.Printf("[TIMEOUT 2PC] Cancelamento de viagem %s expirou na fila de preparação.", req.TransacaoID)
+	})
 	cancelamentos.mu.Unlock()
 
 	w.WriteHeader(http.StatusOK)
@@ -278,6 +283,10 @@ func handlePostViagemCancelarCommit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cancelamentos.mu.Lock()
+	if t, ok := cancelamentos.timers[req.TransacaoID]; ok {
+		t.Stop()
+		delete(cancelamentos.timers, req.TransacaoID)
+	}
 	reservas, existe := cancelamentos.porTransacao[req.TransacaoID]
 	delete(cancelamentos.porTransacao, req.TransacaoID)
 	cancelamentos.mu.Unlock()
@@ -312,6 +321,10 @@ func handlePostViagemCancelarAbort(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cancelamentos.mu.Lock()
+	if t, ok := cancelamentos.timers[req.TransacaoID]; ok {
+		t.Stop()
+		delete(cancelamentos.timers, req.TransacaoID)
+	}
 	delete(cancelamentos.porTransacao, req.TransacaoID)
 	cancelamentos.mu.Unlock()
 

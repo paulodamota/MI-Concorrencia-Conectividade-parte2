@@ -151,7 +151,7 @@ func postHTTP(url string, pacote PacoteHttp) (int, PacoteHttp, error) {
 	return resp.StatusCode, resposta, nil
 }
 
-// trava os trechos da transação e vota
+// trava os trechos da transação com timeout e vota
 func handlePostRemoverPrepare(w http.ResponseWriter, r *http.Request) {
 
 	//erro na leitura será tratado como voto false
@@ -168,23 +168,20 @@ func handlePostRemoverPrepare(w http.ResponseWriter, r *http.Request) {
 	}
 
 	transacoes.mu.Lock()
-	defer transacoes.mu.Unlock()
-
 	//se algum trecho já está em outra transação vota false
 	for _, tc := range chaves {
 		if outra, ocupado := transacoes.TransacaoDoTrecho[tc]; ocupado {
+			transacoes.mu.Unlock()
 			log.Printf("[REMOVER PREPARE] trecho %s ocupado pela transação %s", tc.ID, outra)
 			w.WriteHeader(http.StatusConflict)
 			json.NewEncoder(w).Encode(PacoteHttp{Voto: false})
 			return
 		}
 	}
+	transacoes.mu.Unlock()
 
-	//adiciona os trechos ao mapa de transacoes
-	transacoes.TrechosDaTransacao[req.TransacaoID] = chaves
-	for _, tc := range chaves {
-		transacoes.TransacaoDoTrecho[tc] = req.TransacaoID
-	}
+	//adiciona os trechos ao mapa de transacoes com timeout
+	transacoes.TravarComTimeout(req.TransacaoID, chaves, timeoutTransacaoPadrao)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(PacoteHttp{Voto: true})
@@ -198,12 +195,10 @@ func handlePostRemoverCommit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	transacoes.mu.Lock()
-	defer transacoes.mu.Unlock()
-
-	chaves, existe := transacoes.TrechosDaTransacao[req.TransacaoID]
+	chaves, existe := transacoes.Liberar(req.TransacaoID)
 	if !existe {
-		http.Error(w, "Transação não encontrada", http.StatusNotFound)
+		log.Printf("[REMOVER COMMIT] transação %s rejeitada: já expirou ou não encontrada", req.TransacaoID)
+		http.Error(w, "Transação não encontrada ou expirada", http.StatusNotFound)
 		return
 	}
 
@@ -250,12 +245,6 @@ func handlePostRemoverCommit(w http.ResponseWriter, r *http.Request) {
 		}
 		viagem.mu.Unlock()
 	}
-
-	//remove a transacao dos mapas (libera lock do trecho)
-	for _, tc := range chaves {
-		delete(transacoes.TransacaoDoTrecho, tc)
-	}
-	delete(transacoes.TrechosDaTransacao, req.TransacaoID)
 
 	log.Printf("[REMOVER COMMIT] transação %s confirmada", req.TransacaoID)
 	w.WriteHeader(http.StatusOK)

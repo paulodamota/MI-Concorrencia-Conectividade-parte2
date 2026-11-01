@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"log"
+	"net/http"
 
 	. "vaijunto/cmd/servidor/protocoloREST"
 	. "vaijunto/shared"
@@ -11,7 +13,6 @@ import (
 func ReservaCommit(transacaoID string, passageiro string, servidores []bool) {
 	//corpo com id da transacao e identificador do passageiro
 	body, _ := json.Marshal(PacoteHttp{
-		//aaaaah ta passando o mesmo 2 vezes, posso so tirar e acessar por Reserva...
 		TransacaoID: transacaoID,
 		Reserva: ReservaChave{
 			ReservaID: transacaoID,
@@ -22,7 +23,17 @@ func ReservaCommit(transacaoID string, passageiro string, servidores []bool) {
 
 	for i, url := range cfg.GetUrls() {
 		if servidores[i] {
-			go cliente.Post(url+"/reserva/commit", "application/json", bytes.NewBuffer(body))
+			go func(url string, servidorDestino int) {
+				resp, err := cliente.Post(url+"/reserva/commit", "application/json", bytes.NewBuffer(body))
+				if err != nil {
+					log.Printf("[RESERVA COMMIT] Erro ao enviar commit para servidor %d (%s): %v", servidorDestino, url, err)
+					return
+				}
+				defer resp.Body.Close()
+				if resp.StatusCode != http.StatusOK {
+					log.Printf("[RESERVA COMMIT] Servidor %d retornou status %d para transação %s", servidorDestino, resp.StatusCode, transacaoID)
+				}
+			}(url, i+1)
 		}
 	}
 }

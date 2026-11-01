@@ -387,3 +387,47 @@ func TestCancelarViagemDuranteReservas(t *testing.T) {
 	}
 	nota(t, "em todos os instantes: nenhuma reserva fantasma e notificacoes corretas")
 }
+
+
+// ---------- 6. timeout de travas órfãs (coordenador cai após prepare) ----------
+
+func TestTimeoutTravasOrfas(t *testing.T) {
+	iniciarTeste(t, "coordenador cai apos prepare: as travas expiram por timeout e liberam o trecho")
+
+	srv := disponiveis[0]
+	if !servidores[srv].httpOK {
+		t.Skipf("API REST do servidor %d inacessível daqui", srv)
+	}
+	ori, des := cidades()
+	m := novoMotorista(t, srv, "mot"+uniq(), 1, ori, des)
+	tr := trechoDe(t, m)
+
+	txOrfa := "txOrfa-" + uniq()
+	ok, err := prepareRest(srv, txOrfa, tr, 1, 1)
+	if err != nil || !ok {
+		t.Fatalf("prepare inicial falhou: ok=%v, err=%v", ok, err)
+	}
+
+	// Trecho deve estar travado para outra transação
+	txOutra := "txOutra-" + uniq()
+	ok2, _ := prepareRest(srv, txOutra, tr, 2, 1)
+	if ok2 {
+		t.Fatalf("trecho deveria estar travado pela transação órfã")
+	}
+
+	nota(t, "transacao orfa %s adquiriu o lock; novo prepare rejeitado (esperado)", txOrfa)
+	nota(t, "simulando queda do coordenador: nenhum commit ou abort sera enviado")
+
+	// Espera o timeout expirar (timeoutTransacaoPadrao = 10s + margem de 1s)
+	nota(t, "aguardando expiracao automatica do timeout das travas...")
+	time.Sleep(11 * time.Second)
+
+	// Agora o trecho DEVE ter sido liberado automaticamente
+	ok3, err3 := prepareRest(srv, txOutra, tr, 3, 1)
+	if err3 != nil || !ok3 {
+		t.Fatalf("trecho continua travado apos timeout! Lock lease falhou: ok=%v, err=%v", ok3, err3)
+	}
+	abortRest(srv, txOutra) // limpa lock do teste
+
+	nota(t, "apos o timeout, a trava orfa foi liberada e novo prepare foi concedido com sucesso!")
+}

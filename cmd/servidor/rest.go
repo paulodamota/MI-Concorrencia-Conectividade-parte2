@@ -10,6 +10,10 @@ import (
 	. "vaijunto/cmd/servidor/protocoloREST"
 )
 
+const (
+	timeoutTransacaoPadrao = 10 * time.Second
+)
+
 type Transacoes struct {
 	mu sync.Mutex
 
@@ -22,13 +26,78 @@ type Transacoes struct {
 		caso um motorista cancele a viagem durante a transacao de reserva
 	*/
 	TransacaoDoTrecho map[TrechoChaves]string
+
+	// Timers ativos de timeout por transacao
+	Timers map[string]*time.Timer
 }
 
 func InicializarTransacoes() *Transacoes {
 	return &Transacoes{
 		TrechosDaTransacao: make(map[string][]TrechoChaves),
 		TransacaoDoTrecho:  make(map[TrechoChaves]string),
+		Timers:             make(map[string]*time.Timer),
 	}
+}
+
+// Trava os trechos da transação e agenda o timeout caso o coordenador caia
+func (t *Transacoes) TravarComTimeout(transacaoID string, chaves []TrechoChaves, ttl time.Duration) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	t.TrechosDaTransacao[transacaoID] = chaves
+	for _, tc := range chaves {
+		t.TransacaoDoTrecho[tc] = transacaoID
+	}
+
+	if timer, ok := t.Timers[transacaoID]; ok {
+		timer.Stop()
+	}
+
+	t.Timers[transacaoID] = time.AfterFunc(ttl, func() {
+		t.AbortarPorTimeout(transacaoID)
+	})
+}
+
+// Chamado automaticamente quando o timer expira sem decisão do coordenador
+func (t *Transacoes) AbortarPorTimeout(transacaoID string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	chaves, existe := t.TrechosDaTransacao[transacaoID]
+	if !existe {
+		return // Já foi commitada ou abortada antes do timeout disparar
+	}
+
+	delete(t.Timers, transacaoID)
+	for _, tc := range chaves {
+		delete(t.TransacaoDoTrecho, tc)
+	}
+	delete(t.TrechosDaTransacao, transacaoID)
+
+	log.Printf("[TIMEOUT 2PC] Transação %s expirou! Travas liberadas automaticamente.", transacaoID)
+}
+
+// Libera as travas no Commit ou Abort e cancela o timer associado
+func (t *Transacoes) Liberar(transacaoID string) ([]TrechoChaves, bool) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	chaves, existe := t.TrechosDaTransacao[transacaoID]
+	if !existe {
+		return nil, false
+	}
+
+	if timer, ok := t.Timers[transacaoID]; ok {
+		timer.Stop()
+		delete(t.Timers, transacaoID)
+	}
+
+	for _, tc := range chaves {
+		delete(t.TransacaoDoTrecho, tc)
+	}
+	delete(t.TrechosDaTransacao, transacaoID)
+
+	return chaves, true
 }
 
 //funções da api rest para comunicação entre servidores
