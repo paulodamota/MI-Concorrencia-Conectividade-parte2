@@ -10,7 +10,7 @@ import (
 	. "vaijunto/shared"
 )
 
-func ReservaCommit(transacaoID string, passageiro string, servidores []bool) {
+func ReservaCommit(transacaoID string, passageiro string, servidores []bool) bool {
 	//corpo com id da transacao e identificador do passageiro
 	body, _ := json.Marshal(PacoteHttp{
 		TransacaoID: transacaoID,
@@ -21,19 +21,27 @@ func ReservaCommit(transacaoID string, passageiro string, servidores []bool) {
 		},
 	})
 
+	var comitado bool
+
 	for i, url := range cfg.GetUrls() {
 		if servidores[i] {
-			go func(url string, servidorDestino int) {
-				resp, err := cliente.Post(url+"/reserva/commit", "application/json", bytes.NewBuffer(body))
-				if err != nil {
-					log.Printf("[RESERVA COMMIT] Erro ao enviar commit para servidor %d (%s): %v", servidorDestino, url, err)
-					return
-				}
-				defer resp.Body.Close()
-				if resp.StatusCode != http.StatusOK {
-					log.Printf("[RESERVA COMMIT] Servidor %d retornou status %d para transação %s", servidorDestino, resp.StatusCode, transacaoID)
-				}
-			}(url, i+1)
+			servidorDestino := i + 1
+
+			resp, err := cliente.Post(url+"/reserva/commit", "application/json", bytes.NewBuffer(body))
+			if err != nil {
+				log.Printf("[RESERVA COMMIT] Erro ao enviar commit para servidor %d (%s): %v", servidorDestino, url, err)
+				comitado = false
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				log.Printf("[RESERVA COMMIT] Servidor %d retornou status %d para transação %s", servidorDestino, resp.StatusCode, transacaoID)
+				comitado = false
+			} else {
+				log.Printf("[RESERVA COMMIT] Reserva concluida: Servidor %d retornou status %d para transação %s", servidorDestino, resp.StatusCode, transacaoID)
+				comitado = true
+			}
+
 		}
 	}
+	return comitado
 }

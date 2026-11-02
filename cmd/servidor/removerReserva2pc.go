@@ -195,12 +195,14 @@ func handlePostRemoverCommit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	chaves, existe := transacoes.Liberar(req.TransacaoID)
+	chaves, existe := transacoes.IniciarCommit(req.TransacaoID)
 	if !existe {
 		log.Printf("[REMOVER COMMIT] transação %s rejeitada: já expirou ou não encontrada", req.TransacaoID)
 		http.Error(w, "Transação não encontrada ou expirada", http.StatusNotFound)
 		return
 	}
+
+	defer transacoes.Liberar(req.TransacaoID)
 
 	//reservas a remover: uma só (remoção de reserva) ou várias (cancelamento de viagem)
 	alvos := append([]ReservaChave{}, req.Reservas...)

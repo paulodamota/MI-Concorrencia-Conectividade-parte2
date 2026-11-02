@@ -176,20 +176,29 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 				//o id da viagem eh adicionado aqui
 				i.ID = transacaoID
 
-				//necessita tratamento para queda de servidor aqui...
-				ReservasPass.mu.Lock()
-				ReservasPass.Reservas[user][i.ID] = i
-				ReservasPass.mu.Unlock()
+				comitado := ReservaCommit(transacaoID, user, servidoresParticipantes)
 
-				ReservaCommit(transacaoID, user, servidoresParticipantes)
+				//necessita tratamento para queda de servidor aqui...
+				if comitado {
+					ReservasPass.mu.Lock()
+					ReservasPass.Reservas[user][i.ID] = i
+					ReservasPass.mu.Unlock()
+					log.Printf("Reserva de id %s realizada com sucesso para o passageiro '%s'", i.ID, user)
+
+					*res = Resposta{
+						Status:  "SUCESSO",
+						Message: "Itinerário reservado com sucesso!",
+					}
+				} else {
+
+					log.Printf("Reserva de id %s recusada para o passageiro '%s'", i.ID, user)
+					*res = Resposta{
+						Status:  "FALHA",
+						Message: "Não foi possível reservar o itinerário.",
+					}
+				}
 
 				encerrar_loop = true
-
-				log.Printf("Reserva de id %s realizada com sucesso para o passageiro '%s'", i.ID, user)
-				*res = Resposta{
-					Status:  "SUCESSO",
-					Message: "Itinerário reservado com sucesso!",
-				}
 
 			}
 		case "PROXIMA_ROTA":

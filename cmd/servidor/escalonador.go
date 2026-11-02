@@ -18,7 +18,7 @@ type pedidoReserva struct {
 	id        string // ID da transação
 	chaves    []TrechoChaves
 	chegada   time.Time
-	resultado chan bool // true = concedido (locks já aplicados), false = negado
+	resultado chan bool // true concedido locks já aplicados, false negado
 }
 
 var fila = struct {
@@ -49,7 +49,6 @@ func removerDaFila(p *pedidoReserva) {
 }
 
 // percorre a fila em ordem de timestamp e concede o que for possível
-// escalonador
 func processarFila() {
 	fila.mu.Lock()
 	defer fila.mu.Unlock()
@@ -83,9 +82,11 @@ func processarFila() {
 	fila.pedidos = esperando
 }
 
-// decidido=false: trecho ocupado, continua esperando
+// decidido é false quando o trecho está ocupado, continua esperando
 func tentarConceder(p *pedidoReserva) (concedido bool, decidido bool) {
 	transacoes.mu.Lock()
+
+	//se o trecho está em outra transação, não concede e mantem esperando na fila
 	for _, tc := range p.chaves {
 		if _, ocupado := transacoes.TransacaoDoTrecho[tc]; ocupado {
 			transacoes.mu.Unlock()
@@ -94,22 +95,24 @@ func tentarConceder(p *pedidoReserva) (concedido bool, decidido bool) {
 	}
 	transacoes.mu.Unlock()
 
-	//viagem removida ou sem vagas: NÃO definitivo
+	//viagem removida ou sem vagas, não concede e remove da fila, cancela o pedido
 	if !temVaga(p.chaves) {
 		return false, true
 	}
 
+	//se chega aqui é pq ta livre e tem vaga, aplica trava com timeout
 	transacoes.TravarComTimeout(p.id, p.chaves, timeoutTransacaoPadrao)
 	return true, true
 }
 
 func temVaga(chaves []TrechoChaves) bool {
+
 	for _, tc := range chaves {
 		ViagensMoto.mu.Lock()
 		viagem, ok := ViagensMoto.Viagens[tc.UserName][tc.ViagemID]
 		ViagensMoto.mu.Unlock()
 		if !ok {
-			return false
+			return false //se não existe
 		}
 
 		viagem.mu.Lock()
@@ -123,7 +126,7 @@ func temVaga(chaves []TrechoChaves) bool {
 			t.mu.Unlock()
 			if vagas <= 0 {
 				viagem.mu.Unlock()
-				return false
+				return false //achou mas n tem vagas
 			}
 			achou = true
 			break
@@ -134,7 +137,7 @@ func temVaga(chaves []TrechoChaves) bool {
 			return false
 		}
 	}
-	return true
+	return true //achou e tem vagas
 }
 
 func possuiTrechoEmComum(a, b []TrechoChaves) bool {
@@ -148,7 +151,6 @@ func possuiTrechoEmComum(a, b []TrechoChaves) bool {
 	return false
 }
 
-// chamar uma vez no main (ou dentro de IniciarServidorREST)
 func IniciarEscalonador() {
 	go func() {
 		for {

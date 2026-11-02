@@ -27,7 +27,7 @@ type Transacoes struct {
 	*/
 	TransacaoDoTrecho map[TrechoChaves]string
 
-	// Timers ativos de timeout por transacao
+	// Timers ativos de timeout de cada transacao
 	Timers map[string]*time.Timer
 }
 
@@ -128,6 +128,8 @@ func IniciarServidorREST() {
 		Transport: relogioDeLamport.Transporte(http.DefaultTransport),
 	}
 
+	//inicia o escalonador do relogio logico
+	//é uma goroutine que roda a cada 20milisegundos para processar a fila
 	IniciarEscalonador()
 
 	go func() {
@@ -146,6 +148,7 @@ func IniciarServidorREST() {
 	}()
 }
 
+// receb o comando de um servidor que pediu as adjacencias de uma cidade e retorna a lista
 func handleGetAdjacencias(w http.ResponseWriter, r *http.Request) {
 
 	cidade := r.PathValue("cidade")
@@ -184,4 +187,25 @@ func ComandoParaServidor(comando string, mensagem string, Destinatario int) (*Pa
 		return nil, err
 	}
 	return &resposta, nil
+}
+
+// desativa o timer de timeout para não abortar durante o commit,
+// matem os trechos travados em TransacaoDoTrecho
+// assim as vagas do trecho não modificadas enquanto se verfica se o timer expirou ou não
+func (t *Transacoes) IniciarCommit(transacaoID string) ([]TrechoChaves, bool) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	chaves, existe := t.TrechosDaTransacao[transacaoID]
+	if !existe {
+		return nil, false
+	}
+
+	// cancela o timer para não expirar enquanto altera o dado
+	if timer, ok := t.Timers[transacaoID]; ok {
+		timer.Stop()
+		delete(t.Timers, transacaoID)
+	}
+
+	return chaves, true
 }
