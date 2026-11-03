@@ -101,7 +101,7 @@ func tentarConceder(p *pedidoReserva) (concedido bool, decidido bool) {
 	}
 
 	//se chega aqui é pq ta livre e tem vaga, aplica trava com timeout
-	transacoes.TravarComTimeout(p.id, p.chaves, timeoutTransacaoPadrao)
+	transacoes.TravarComTimeout(p.id, p.chaves, timeoutTransacaoReserva)
 	return true, true
 }
 

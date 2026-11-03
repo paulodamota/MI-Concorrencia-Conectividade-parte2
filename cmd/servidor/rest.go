@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	timeoutTransacaoPadrao = 10 * time.Second
+	timeoutTransacaoPadrao  = 10 * time.Second
+	timeoutTransacaoReserva = 16 * time.Second
 )
 
 type Transacoes struct {

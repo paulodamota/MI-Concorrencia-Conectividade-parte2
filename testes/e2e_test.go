@@ -388,7 +388,6 @@ func TestCancelarViagemDuranteReservas(t *testing.T) {
 	nota(t, "em todos os instantes: nenhuma reserva fantasma e notificacoes corretas")
 }
 
-
 // ---------- 6. timeout de travas órfãs (coordenador cai após prepare) ----------
 
 func TestTimeoutTravasOrfas(t *testing.T) {
@@ -420,7 +419,7 @@ func TestTimeoutTravasOrfas(t *testing.T) {
 
 	// Espera o timeout expirar (timeoutTransacaoPadrao = 10s + margem de 1s)
 	nota(t, "aguardando expiracao automatica do timeout das travas...")
-	time.Sleep(11 * time.Second)
+	time.Sleep(17 * time.Second)
 
 	// Agora o trecho DEVE ter sido liberado automaticamente
 	ok3, err3 := prepareRest(srv, txOutra, tr, 3, 1)

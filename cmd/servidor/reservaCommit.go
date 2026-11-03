@@ -1,10 +1,9 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	. "vaijunto/cmd/servidor/protocoloREST"
 	. "vaijunto/shared"
@@ -12,36 +11,47 @@ import (
 
 func ReservaCommit(transacaoID string, passageiro string, servidores []bool) bool {
 	//corpo com id da transacao e identificador do passageiro
-	body, _ := json.Marshal(PacoteHttp{
+	pacote := PacoteHttp{
 		TransacaoID: transacaoID,
 		Reserva: ReservaChave{
 			ReservaID: transacaoID,
 			Servidor:  cfg.ServidorID,
 			User:      passageiro,
 		},
-	})
+	}
 
-	var comitado bool
+	comitado := true
 
 	for i, url := range cfg.GetUrls() {
-		if servidores[i] {
-			servidorDestino := i + 1
+		if !servidores[i] {
+			continue
+		}
+		servidorDestino := i + 1
 
-			resp, err := cliente.Post(url+"/reserva/commit", "application/json", bytes.NewBuffer(body))
+		// tenta até 3 vezes: redes instáveis podem causar falha transitória
+		sucesso := false
+		for tentativa := 1; tentativa <= 3; tentativa++ {
+			status, _, err := postHTTP(url+"/reserva/commit", pacote)
+			if err == nil && status == http.StatusOK {
+				log.Printf("[RESERVA COMMIT] Reserva concluída: servidor %d confirmou transação %s (tentativa %d)", servidorDestino, transacaoID, tentativa)
+				sucesso = true
+				break
+			}
 			if err != nil {
-				log.Printf("[RESERVA COMMIT] Erro ao enviar commit para servidor %d (%s): %v", servidorDestino, url, err)
-				comitado = false
-			}
-			defer resp.Body.Close()
-			if resp.StatusCode != http.StatusOK {
-				log.Printf("[RESERVA COMMIT] Servidor %d retornou status %d para transação %s", servidorDestino, resp.StatusCode, transacaoID)
-				comitado = false
+				log.Printf("[RESERVA COMMIT] Tentativa %d — erro ao enviar commit para servidor %d: %v", tentativa, servidorDestino, err)
 			} else {
-				log.Printf("[RESERVA COMMIT] Reserva concluida: Servidor %d retornou status %d para transação %s", servidorDestino, resp.StatusCode, transacaoID)
-				comitado = true
+				log.Printf("[RESERVA COMMIT] Tentativa %d — servidor %d retornou status %d para transação %s", tentativa, servidorDestino, status, transacaoID)
 			}
+			if tentativa < 3 {
+				time.Sleep(500 * time.Millisecond)
+			}
+		}
 
+		if !sucesso {
+			log.Printf("[RESERVA COMMIT] ATENÇÃO: servidor %d não confirmou commit da transação %s após 3 tentativas — commit parcial!", servidorDestino, transacaoID)
+			comitado = false
 		}
 	}
+
 	return comitado
 }
