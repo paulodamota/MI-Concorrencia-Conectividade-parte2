@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+
 	. "vaijunto/cmd/servidor/protocoloREST"
 )
 
@@ -35,6 +36,14 @@ func handlePostReservaPrepare(w http.ResponseWriter, r *http.Request) {
 	select {
 	case ok := <-pedido.resultado:
 		log.Printf("[HANDLE RESERVA PREPARE 3]")
+		if ok {
+			// WAL PARTICIPANTE: locks concedidos — sobreviverá a um crash do participante
+			GravarWALParticipante(EntradaWALParticipante{
+				Tipo:   "PREPARED",
+				TxID:   req.TransacaoID,
+				Chaves: chaves,
+			})
+		}
 		votarPrepare(w, req, ok)
 
 	case <-time.After(esperaMaxima):
@@ -44,6 +53,13 @@ func handlePostReservaPrepare(w http.ResponseWriter, r *http.Request) {
 		//pode ter sido concedido no instante do timeout se sim, os locks já estão aplicados
 		select {
 		case ok := <-pedido.resultado:
+			if ok {
+				GravarWALParticipante(EntradaWALParticipante{
+					Tipo:   "PREPARED",
+					TxID:   req.TransacaoID,
+					Chaves: chaves,
+				})
+			}
 			votarPrepare(w, req, ok)
 		default:
 			log.Printf("[PREPARE] transação %s (ts %+v) expirou na fila", req.TransacaoID, req.Timestamp)

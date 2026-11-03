@@ -134,9 +134,11 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 	for _, i := range itinerarios {
 		var trecho_preparado ViagemData
 
-		transacaoID, disponivel := ReservaPrepare(i, ts) //mudança necessaria para trechos entre servidores
+		// Garante que os servidores participantes sejam deduzidos diretamente dos trechos
+		servidoresParticipantes := i.ObterServidoresParticipantes()
+		i.Servidores = servidoresParticipantes
 
-		servidoresParticipantes := i.Servidores
+		transacaoID, disponivel := ReservaPrepare(i, ts) //mudança necessaria para trechos entre servidores
 
 		log.Printf("[PASS CON ESCOLHA RESERVA] servidores participantes: %v", servidoresParticipantes)
 
@@ -144,6 +146,16 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 			ReservaAbort(transacaoID, servidoresParticipantes)
 			continue
 		}
+
+		// WAL PREPARED: locks adquiridos, aguardando decisão do usuário.
+		// Se o servidor cair aqui, o recovery vai abortar esta transação.
+		GravarWAL(EntradaWAL{
+			Tipo:       WALPrepared,
+			TxID:       transacaoID,
+			Passageiro: user,
+			Servidores: servidoresParticipantes,
+			Viagem:     i,
+		})
 
 		log.Printf("Ola esperando usuario decidir sobre rota preparada")
 
@@ -156,6 +168,7 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 		}
 		if err := encoder.Encode(res); err != nil {
 			ReservaAbort(transacaoID, servidoresParticipantes)
+			GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
 			log.Printf("Erro ao enviar resposta: %v. Operação cancelada", err)
 			return err
 		}
@@ -165,6 +178,7 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 		err := decoder.Decode(req)
 		if err != nil {
 			ReservaAbort(transacaoID, servidoresParticipantes)
+			GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
 			log.Printf("Operação cancelada. Conexão do passagerio '%s' encerrada, durante escolha da reserva: %v", user, err)
 			return err
 		}
@@ -176,21 +190,33 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 				//o id da viagem eh adicionado aqui
 				i.ID = transacaoID
 
+				// WAL COMMITTED: ponto de não-retorno gravado em disco ANTES de enviar
+				// os commits. Se o servidor cair a partir daqui, o recovery vai reenviar
+				// os commits para todos os participantes.
+				GravarWAL(EntradaWAL{
+					Tipo:       WALCommitted,
+					TxID:       transacaoID,
+					Passageiro: user,
+					Servidores: servidoresParticipantes,
+					Viagem:     i,
+				})
+
 				comitado := ReservaCommit(transacaoID, user, servidoresParticipantes)
 
-				//necessita tratamento para queda de servidor aqui...
 				if comitado {
 					ReservasPass.mu.Lock()
 					ReservasPass.Reservas[user][i.ID] = i
 					ReservasPass.mu.Unlock()
 					log.Printf("Reserva de id %s realizada com sucesso para o passageiro '%s'", i.ID, user)
 
+					// WAL DONE: todos confirmaram, entrada pode ser ignorada no futuro
+					GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
+
 					*res = Resposta{
 						Status:  "SUCESSO",
 						Message: "Itinerário reservado com sucesso!",
 					}
 				} else {
-
 					log.Printf("Reserva de id %s recusada para o passageiro '%s'", i.ID, user)
 					*res = Resposta{
 						Status:  "FALHA",
@@ -206,11 +232,13 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 				//A resposta ao ciente será dada na proxima iteração do loop
 				// ja com a proxima rota indexada
 				ReservaAbort(transacaoID, servidoresParticipantes)
+				GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
 			}
 		case "CANCELAR":
 			{
 				encerrar_loop = true
 				ReservaAbort(transacaoID, servidoresParticipantes)
+				GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
 				*res = Resposta{
 					Status:  "SUCESSO",
 					Message: "Operação Cancelada",
@@ -219,6 +247,7 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 		default:
 			encerrar_loop = true
 			ReservaAbort(transacaoID, servidoresParticipantes)
+			GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
 			*res = Resposta{
 				Status:  "ERRO",
 				Message: fmt.Sprintf("Acao não reconhecida: '%s' . Operação Cancelada", req.Acao),

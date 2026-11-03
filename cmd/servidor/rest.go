@@ -76,6 +76,17 @@ func (t *Transacoes) AbortarPorTimeout(transacaoID string) {
 	delete(t.TrechosDaTransacao, transacaoID)
 
 	log.Printf("[TIMEOUT 2PC] Transação %s expirou! Travas liberadas automaticamente.", transacaoID)
+
+	// WAL PARTICIPANTE: abort por timeout — na próxima startup não tentaremos commitar
+	go GravarWALParticipante(EntradaWALParticipante{
+		Tipo: "ABORTED",
+		TxID: transacaoID,
+	})
+
+	// remove de pendentesCommit se por algum motivo ainda estiver lá
+	pendentesCommit.mu.Lock()
+	delete(pendentesCommit.txs, transacaoID)
+	pendentesCommit.mu.Unlock()
 }
 
 // Libera as travas no Commit ou Abort e cancela o timer associado

@@ -53,6 +53,15 @@ func main() {
 	//carrega os dados salvos
 	Carregar()
 
+	//configura para salvar os logs em arquivos (antes do WAL para que o recovery seja registrado)
+	ConfigurarLogs()
+
+	//inicializa o log de transações (WAL) e recupera transações pendentes do crash anterior
+	InicializarWAL()
+	RecuperarWAL()
+	InicializarWALParticipante()
+	RecuperarWALParticipante()
+
 	//salva dados de tempos em tempos
 	go func() {
 		for {
@@ -61,9 +70,6 @@ func main() {
 			//fmt.Printf("\t[BackUp!]")
 		}
 	}()
-
-	//configura para salvar os logs em arquivos
-	ConfigurarLogs()
 
 	IniciarServidorREST()
 	//configurando a conexão de usuário

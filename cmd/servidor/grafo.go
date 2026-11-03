@@ -51,7 +51,9 @@ func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho
 	if atual == destino {
 		caminhoCopia := make([]TrechoData, len(caminho))
 		copy(caminhoCopia, caminho)
-		*resultados = append(*resultados, &ViagemData{Trechos: caminhoCopia, Servidores: servidores})
+		servidoresCopia := make([]bool, len(servidores))
+		copy(servidoresCopia, servidores)
+		*resultados = append(*resultados, &ViagemData{Trechos: caminhoCopia, Servidores: servidoresCopia})
 		return
 	}
 

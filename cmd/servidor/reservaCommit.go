@@ -10,6 +10,18 @@ import (
 )
 
 func ReservaCommit(transacaoID string, passageiro string, servidores []bool) bool {
+	temParticipante := false
+	for _, s := range servidores {
+		if s {
+			temParticipante = true
+			break
+		}
+	}
+	if !temParticipante {
+		log.Printf("[RESERVA COMMIT] Erro: nenhum servidor participante informado para transação %s", transacaoID)
+		return false
+	}
+
 	//corpo com id da transacao e identificador do passageiro
 	pacote := PacoteHttp{
 		TransacaoID: transacaoID,
