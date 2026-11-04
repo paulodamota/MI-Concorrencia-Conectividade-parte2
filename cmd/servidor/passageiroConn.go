@@ -147,8 +147,6 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 			continue
 		}
 
-		// WAL PREPARED: locks adquiridos, aguardando decisão do usuário.
-		// Se o servidor cair aqui, o recovery vai abortar esta transação.
 		GravarWAL(EntradaWAL{
 			Tipo:       WALPrepared,
 			TxID:       transacaoID,
@@ -190,9 +188,6 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 				//o id da viagem eh adicionado aqui
 				i.ID = transacaoID
 
-				// WAL COMMITTED: ponto de não-retorno gravado em disco ANTES de enviar
-				// os commits. Se o servidor cair a partir daqui, o recovery vai reenviar
-				// os commits para todos os participantes.
 				GravarWAL(EntradaWAL{
 					Tipo:       WALCommitted,
 					TxID:       transacaoID,
@@ -201,20 +196,24 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 					Viagem:     i,
 				})
 
-				comitado := ReservaCommit(transacaoID, user, servidoresParticipantes)
+				aceito, completo := ReservaCommit(transacaoID, user, servidoresParticipantes)
 
-				if comitado {
+				if aceito {
 					ReservasPass.mu.Lock()
+					if ReservasPass.Reservas[user] == nil {
+						ReservasPass.Reservas[user] = InicializarReservasByUser()
+					}
 					ReservasPass.Reservas[user][i.ID] = i
 					ReservasPass.mu.Unlock()
-					log.Printf("Reserva de id %s realizada com sucesso para o passageiro '%s'", i.ID, user)
+					log.Printf("Reserva de id %s realizada com sucesso para o passageiro '%s' (completo=%t)", i.ID, user, completo)
 
-					// WAL DONE: todos confirmaram, entrada pode ser ignorada no futuro
-					GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
-
+					msg := "Itinerário reservado com sucesso!"
+					if !completo {
+						msg = "Itinerário reservado! A confirmação em alguns servidores será concluída automaticamente em segundo plano."
+					}
 					*res = Resposta{
 						Status:  "SUCESSO",
-						Message: "Itinerário reservado com sucesso!",
+						Message: msg,
 					}
 				} else {
 					log.Printf("Reserva de id %s recusada para o passageiro '%s'", i.ID, user)

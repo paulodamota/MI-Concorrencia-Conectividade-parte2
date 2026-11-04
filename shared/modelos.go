@@ -217,11 +217,10 @@ func ImprimirViagens(viagens []ViagemData) {
 }
 
 func ImprimirReservas(viagens []ViagemData) {
-	fmt.Println("======================== RESUMO DE RESERVAS ========================")
+	fmt.Println("======================= RESUMO DE RESERVAS =======================")
 
 	for h, viagem := range viagens {
 		fmt.Printf("Reserva #%d:\n", h+1)
-		fmt.Printf("\tDono : %s\n", viagem.Dono)
 		fmt.Printf("\tID da reserva: %s\n", viagem.ID)
 		fmt.Printf("\n\tTotal de Trechos: %d\n", len(viagem.Trechos))
 
@@ -250,12 +249,10 @@ func ImprimirReservasEscolha(viagens []ViagemData) {
 
 	for h, viagem := range viagens {
 		fmt.Printf("Reserva #%d:\n", h+1)
-		fmt.Printf("\tDono : %s\n", viagem.Dono)
-		fmt.Printf("\tID da reserva: %s\n", viagem.ID)
 		fmt.Printf("\n\tTotal de Trechos: %d\n", len(viagem.Trechos))
 
 		if len(viagem.Trechos) > 0 {
-			fmt.Println("\tDetalhes dos Trechos:")
+			fmt.Println("\n\tDetalhes dos Trechos:")
 			for i, trecho := range viagem.Trechos {
 				fmt.Printf("\n")
 				fmt.Printf("\tTrecho #%d:\n", i)

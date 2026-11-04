@@ -102,7 +102,7 @@ func (g *GrafoRotas) dfsBusca(atual string, destino string, data string, caminho
 			// continua a busca a partir da próxima cidade
 			g.dfsBusca(t.Destino, destino, data, caminho, visitados, resultados, servidores)
 
-			if len(*resultados) > 0 {
+			if len(*resultados) > 2 {
 				return
 			}
 

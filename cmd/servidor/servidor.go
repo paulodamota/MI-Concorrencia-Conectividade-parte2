@@ -50,6 +50,8 @@ func main() {
 	//
 	relogioDeLamport = relogioLogico.New(cfg.ServidorID)
 
+	InicializarClienteHTTP()
+
 	//carrega os dados salvos
 	Carregar()
 

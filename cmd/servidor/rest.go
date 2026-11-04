@@ -119,6 +119,21 @@ var (
 	cliente *http.Client
 )
 
+// cria o cliente HTTP usado nas chamadas entre servidores.
+// rodar antes de RecuperarWAL/RecuperarWALParticipante pq recovery
+// envia aborts e commits Depende de relogioDeLamport inicializado
+func InicializarClienteHTTP() {
+	if cliente != nil {
+		return
+	}
+	//ao enviar requisição, espera por 200 milissegundos
+	//não havendo resposta retorna erro
+	cliente = &http.Client{
+		Timeout:   200 * time.Millisecond,
+		Transport: relogioDeLamport.Transporte(http.DefaultTransport),
+	}
+}
+
 func IniciarServidorREST() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /adjacencias/{cidade}", handleGetAdjacencias)
@@ -133,12 +148,7 @@ func IniciarServidorREST() {
 	mux.HandleFunc("POST /viagem/cancelar/commit", handlePostViagemCancelarCommit)
 	mux.HandleFunc("POST /viagem/cancelar/abort", handlePostViagemCancelarAbort)
 
-	//ao enviar requisição, espera por 200 milissegundos
-	//não havendo resposta retorna erro
-	cliente = &http.Client{
-		Timeout:   200 * time.Millisecond,
-		Transport: relogioDeLamport.Transporte(http.DefaultTransport),
-	}
+	InicializarClienteHTTP()
 
 	//inicia o escalonador do relogio logico
 	//é uma goroutine que roda a cada 20milisegundos para processar a fila

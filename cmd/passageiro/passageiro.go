@@ -265,6 +265,8 @@ func LoggedIn(encoder *json.Encoder, decoder *json.Decoder, scanner *bufio.Scann
 
 			//aqui está dentro do loop, caso haja trechos e vagas
 			// loop de navegação pelas rotas encontradas
+			timer := time.NewTimer(15 * time.Second)
+			defer timer.Stop()
 			for {
 
 				//essa função enumera as viagens enviadas,
@@ -279,44 +281,23 @@ func LoggedIn(encoder *json.Encoder, decoder *json.Decoder, scanner *bufio.Scann
 
 				fmt.Println("Você tem 15 segundos para tomar uma ação, ou a operação será cancelada:")
 
-				canalTimeout := make(chan bool)
-				pararBarra := make(chan struct{})
-				// Goroutine para atualizar a barra de progresso a cada 1 segundo
+				//canaaaaaal
+				canal := make(chan string)
+
+				// goroutine só pra ler hahaha
 				go func() {
-					totalSegundos := 15
-					tamanhoBarra := 20
-
-					for i := 0; i <= totalSegundos; i++ {
-						restantes := totalSegundos - i
-
-						// Se o tempo acabou, avisa o select principal
-						if restantes == 0 {
-							canalTimeout <- true
-							break
-						}
-
-						// Desenha a barra de progresso
-						progresso := (i * tamanhoBarra) / totalSegundos
-						barra := strings.Repeat("█", progresso) + strings.Repeat("-", tamanhoBarra-progresso)
-
-						fmt.Printf("\r[%s] %2d segundos restantes... ", barra, restantes)
-
-						select {
-						case <-pararBarra:
-							return
-						case <-time.After(1 * time.Second):
-						}
-					}
+					reader := bufio.NewReader(os.Stdin)
+					text, _ := reader.ReadString('\n')
+					canal <- text
 				}()
 
-				// Lê diretamente do canalTeclado ou espera o timeout
+				// ou digita ou vapos
 				var input string
 				select {
-				case input = <-canalTeclado:
-					close(pararBarra)
-					fmt.Print("\n")
+				case texto := <-canal:
+					input = texto
 
-				case <-canalTimeout:
+				case <-timer.C:
 					fmt.Println("\n[Tempo esgotado!] A operação será cancelada por inatividade.")
 					input = "3"
 					drenarTeclado()
@@ -329,6 +310,15 @@ func LoggedIn(encoder *json.Encoder, decoder *json.Decoder, scanner *bufio.Scann
 					acaoReq = "CONFIRMAR_ROTA"
 				case "2":
 					acaoReq = "PROXIMA_ROTA"
+
+					if !timer.Stop() {
+						select {
+						case <-timer.C:
+						default:
+						}
+					}
+					timer.Reset(15 * time.Second)
+
 				case "3":
 					acaoReq = "CANCELAR"
 				default:

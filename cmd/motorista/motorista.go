@@ -371,6 +371,21 @@ func DefinirVagasTrechos(scanner *bufio.Scanner, paradas []string, user string) 
 		return nil, true
 	}
 
+	fmt.Printf("Qual a data da viagem? (Padrão dd-mm-yyyy) ")
+	scanner.Scan()
+	data := scanner.Text()
+	_, err := time.Parse("02-01-2006", data)
+	for err != nil {
+		fmt.Print("Formata de data invalido!!, Siga o padrão: dd-mm-yyyy")
+		scanner.Scan()
+		data = scanner.Text()
+		_, err = time.Parse("02-01-2006", data)
+	}
+
+	fmt.Printf("Qual o horario da viagem?: ")
+	scanner.Scan()
+	horario := scanner.Text()
+
 	for i := 0; i < len(paradas)-1; i++ {
 		origem := paradas[i]
 		destino := paradas[i+1]
@@ -381,21 +396,6 @@ func DefinirVagasTrechos(scanner *bufio.Scanner, paradas []string, user string) 
 		if cancelado {
 			return nil, true
 		}
-
-		fmt.Printf("Qual a data da viagem? (Padrão dd-mm-yyyy) ")
-		scanner.Scan()
-		data := scanner.Text()
-		_, err := time.Parse("02-01-2006", data)
-		for err != nil {
-			fmt.Print("Formata de data invalido!!, Siga o padrão: dd-mm-yyyy")
-			scanner.Scan()
-			data = scanner.Text()
-			_, err = time.Parse("02-01-2006", data)
-		}
-
-		fmt.Printf("Qual o horario da viagem?: ")
-		scanner.Scan()
-		horario := scanner.Text()
 
 		trechos = append(trechos, TrechoData{
 			Motorista: user,

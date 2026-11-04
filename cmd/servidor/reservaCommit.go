@@ -3,26 +3,56 @@ package main
 import (
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	. "vaijunto/cmd/servidor/protocoloREST"
 	. "vaijunto/shared"
 )
 
-func ReservaCommit(transacaoID string, passageiro string, servidores []bool) bool {
-	temParticipante := false
-	for _, s := range servidores {
-		if s {
-			temParticipante = true
-			break
+const (
+	retryBackoffInicial = 500 * time.Millisecond
+	retryBackoffMaximo  = 30 * time.Second
+)
+
+// evita duas goroutines de retry para a mesma transação.
+var retriesAtivos = struct {
+	mu  sync.Mutex
+	ids map[string]bool
+}{ids: make(map[string]bool)}
+
+func algumVerdadeiro(flags []bool) bool {
+	for _, f := range flags {
+		if f {
+			return true
 		}
 	}
-	if !temParticipante {
+	return false
+}
+
+// faz a primeira rodada de commits em paralelo
+func ReservaCommit(transacaoID string, passageiro string, servidores []bool) (aceito bool, completo bool) {
+	if !algumVerdadeiro(servidores) {
 		log.Printf("[RESERVA COMMIT] Erro: nenhum servidor participante informado para transação %s", transacaoID)
-		return false
+		GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
+		return false, false
 	}
 
-	//corpo com id da transacao e identificador do passageiro
+	pendentes := enviarCommits(transacaoID, passageiro, servidores)
+
+	if !algumVerdadeiro(pendentes) {
+		GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
+		return true, true
+	}
+
+	log.Printf("[RESERVA COMMIT] tx %s: commit pendente em %v — retry persistente em segundo plano", transacaoID, pendentes)
+	go retryPersistente(transacaoID, passageiro, pendentes, retryBackoffInicial)
+	return true, false
+}
+
+// manda um commit a cada servidor marcado em alvos, em paralelo.
+// Devolve quais servidores ainda estão pendentes
+func enviarCommits(transacaoID string, passageiro string, alvos []bool) []bool {
 	pacote := PacoteHttp{
 		TransacaoID: transacaoID,
 		Reserva: ReservaChave{
@@ -32,38 +62,75 @@ func ReservaCommit(transacaoID string, passageiro string, servidores []bool) boo
 		},
 	}
 
-	comitado := true
+	restantes := make([]bool, len(alvos))
+	var wg sync.WaitGroup
 
 	for i, url := range cfg.GetUrls() {
-		if !servidores[i] {
+		if i >= len(alvos) || !alvos[i] {
 			continue
 		}
-		servidorDestino := i + 1
-
-		// tenta até 3 vezes: redes instáveis podem causar falha transitória
-		sucesso := false
-		for tentativa := 1; tentativa <= 3; tentativa++ {
+		wg.Add(1)
+		go func(i int, url string) {
+			defer wg.Done()
 			status, _, err := postHTTP(url+"/reserva/commit", pacote)
-			if err == nil && status == http.StatusOK {
-				log.Printf("[RESERVA COMMIT] Reserva concluída: servidor %d confirmou transação %s (tentativa %d)", servidorDestino, transacaoID, tentativa)
-				sucesso = true
-				break
+
+			switch {
+			case err == nil && status == http.StatusOK:
+				log.Printf("[RESERVA COMMIT] servidor %d confirmou tx %s", i+1, transacaoID)
+				GravarWAL(EntradaWAL{Tipo: WALAck, TxID: transacaoID, Servidor: i + 1})
+
+			case err == nil && status == http.StatusNotFound:
+				log.Printf("[RESERVA COMMIT] ATENÇÃO: servidor %d não conhece a tx %s (expirou/abortou) — INCONSISTÊNCIA, desistindo deste servidor", i+1, transacaoID)
+				GravarWAL(EntradaWAL{Tipo: WALAck, TxID: transacaoID, Servidor: i + 1})
+
+			default:
+				restantes[i] = true
+				if err != nil {
+					log.Printf("[RESERVA COMMIT] servidor %d indisponível para tx %s: %v", i+1, transacaoID, err)
+				} else {
+					log.Printf("[RESERVA COMMIT] servidor %d retornou status %d para tx %s", i+1, status, transacaoID)
+				}
 			}
-			if err != nil {
-				log.Printf("[RESERVA COMMIT] Tentativa %d — erro ao enviar commit para servidor %d: %v", tentativa, servidorDestino, err)
-			} else {
-				log.Printf("[RESERVA COMMIT] Tentativa %d — servidor %d retornou status %d para transação %s", tentativa, servidorDestino, status, transacaoID)
-			}
-			if tentativa < 3 {
-				time.Sleep(500 * time.Millisecond)
-			}
+		}(i, url)
+	}
+	wg.Wait()
+	return restantes
+}
+
+// insiste no commit dos servidores pendentes até todos
+// confirmarem.
+func retryPersistente(transacaoID string, passageiro string, pendentes []bool, atrasoInicial time.Duration) {
+	retriesAtivos.mu.Lock()
+	if retriesAtivos.ids[transacaoID] {
+		retriesAtivos.mu.Unlock()
+		return
+	}
+	retriesAtivos.ids[transacaoID] = true
+	retriesAtivos.mu.Unlock()
+
+	defer func() {
+		retriesAtivos.mu.Lock()
+		delete(retriesAtivos.ids, transacaoID)
+		retriesAtivos.mu.Unlock()
+	}()
+
+	backoff := retryBackoffInicial
+	time.Sleep(atrasoInicial)
+
+	for tentativa := 1; ; tentativa++ {
+		pendentes = enviarCommits(transacaoID, passageiro, pendentes)
+
+		if !algumVerdadeiro(pendentes) {
+			GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
+			log.Printf("[RETRY COMMIT] tx %s concluída após %d rodada(s)", transacaoID, tentativa)
+			return
 		}
 
-		if !sucesso {
-			log.Printf("[RESERVA COMMIT] ATENÇÃO: servidor %d não confirmou commit da transação %s após 3 tentativas — commit parcial!", servidorDestino, transacaoID)
-			comitado = false
+		log.Printf("[RETRY COMMIT] tx %s ainda pendente em %v (rodada %d) — nova tentativa em %s",
+			transacaoID, pendentes, tentativa, backoff)
+		time.Sleep(backoff)
+		if backoff *= 2; backoff > retryBackoffMaximo {
+			backoff = retryBackoffMaximo
 		}
 	}
-
-	return comitado
 }
