@@ -93,7 +93,7 @@ func ToTrecho(t *TrechoData, novoID bool) Trecho {
 		Preco:     t.Preco,
 		Data:      t.Data,
 		Horario:   t.Horario,
-		Servidor:  servidor, //atribui aqui o identificador unico do servidor a cada trecho criado
+		Servidor:  cfg.ServidorID, //atribui aqui o identificador unico do servidor a cada trecho criado
 		//permitindo identificar a qual servidor o trecho pertence, mesmo nos
 		// cadastro de reservas de outros servidores
 	}

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -11,6 +12,49 @@ import (
 	"time"
 	. "vaijunto/shared"
 )
+
+var canalTeclado = make(chan string, 10)
+
+type chanReader struct {
+	canal  <-chan string
+	buffer []byte
+}
+
+func (cr *chanReader) Read(p []byte) (n int, err error) {
+	if len(cr.buffer) == 0 {
+		linha, ok := <-cr.canal
+		if !ok {
+			return 0, io.EOF
+		}
+		cr.buffer = []byte(linha + "\n")
+	}
+	n = copy(p, cr.buffer)
+	cr.buffer = cr.buffer[n:]
+	return n, nil
+}
+
+func iniciarLeitorStdin() {
+	go func() {
+		defer close(canalTeclado)
+		rawScanner := bufio.NewScanner(os.Stdin)
+		for rawScanner.Scan() {
+			canalTeclado <- rawScanner.Text()
+		}
+		if err := rawScanner.Err(); err != nil {
+			log.Printf("Erro ao ler da entrada padrão: %v", err)
+		}
+	}()
+}
+
+func drenarTeclado() {
+	for {
+		select {
+		case <-canalTeclado:
+		default:
+			return
+		}
+	}
+}
 
 func main() {
 	endereco := os.Getenv("endereco")
@@ -25,7 +69,8 @@ func main() {
 	}
 	defer conn.Close()
 
-	scanner := bufio.NewScanner(os.Stdin)
+	iniciarLeitorStdin()
+	scanner := bufio.NewScanner(&chanReader{canal: canalTeclado})
 	decoder := json.NewDecoder(conn)
 	encoder := json.NewEncoder(conn)
 
@@ -220,6 +265,8 @@ func LoggedIn(encoder *json.Encoder, decoder *json.Decoder, scanner *bufio.Scann
 
 			//aqui está dentro do loop, caso haja trechos e vagas
 			// loop de navegação pelas rotas encontradas
+			timer := time.NewTimer(15 * time.Second)
+			defer timer.Stop()
 			for {
 
 				//essa função enumera as viagens enviadas,
@@ -244,48 +291,16 @@ func LoggedIn(encoder *json.Encoder, decoder *json.Decoder, scanner *bufio.Scann
 					canal <- text
 				}()
 
-				canalTimeout := make(chan bool)
-				pararBarra := make(chan struct{})
-				// Goroutine para atualizar a barra de progresso a cada 1 segundo
-				go func() {
-					totalSegundos := 15
-					tamanhoBarra := 20
-
-					for i := 0; i <= totalSegundos; i++ {
-						restantes := totalSegundos - i
-
-						// Se o tempo acabou, avisa o select principal
-						if restantes == 0 {
-							canalTimeout <- true
-							break
-						}
-
-						select {
-						case <-pararBarra:
-							return
-						case <-time.After(1 * time.Second):
-						}
-
-						// Desenha a barra de progresso
-						progresso := (i * tamanhoBarra) / totalSegundos
-						barra := strings.Repeat("█", progresso) + strings.Repeat("-", tamanhoBarra-progresso)
-
-						fmt.Printf("\r[%s] %2d segundos restantes... ", barra, restantes)
-
-						time.Sleep(1 * time.Second)
-					}
-				}()
-
 				// ou digita ou vapos
 				var input string
 				select {
-				case input = <-canal:
-					close(pararBarra)
-					fmt.Print("\n")
+				case texto := <-canal:
+					input = texto
 
-				case <-canalTimeout:
+				case <-timer.C:
 					fmt.Println("\n[Tempo esgotado!] A operação será cancelada por inatividade.")
 					input = "3"
+					drenarTeclado()
 				}
 				input = strings.TrimSpace(input)
 
@@ -295,6 +310,15 @@ func LoggedIn(encoder *json.Encoder, decoder *json.Decoder, scanner *bufio.Scann
 					acaoReq = "CONFIRMAR_ROTA"
 				case "2":
 					acaoReq = "PROXIMA_ROTA"
+
+					if !timer.Stop() {
+						select {
+						case <-timer.C:
+						default:
+						}
+					}
+					timer.Reset(15 * time.Second)
+
 				case "3":
 					acaoReq = "CANCELAR"
 				default:
@@ -321,6 +345,7 @@ func LoggedIn(encoder *json.Encoder, decoder *json.Decoder, scanner *bufio.Scann
 					break
 				}
 			}
+			drenarTeclado()
 
 		case "2": //remover reserva
 			{

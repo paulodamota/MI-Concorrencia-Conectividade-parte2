@@ -7,7 +7,12 @@ import (
 	"sync"
 	"time"
 
-	. "vaijunto/shared"
+	. "vaijunto/cmd/servidor/protocoloREST"
+)
+
+const (
+	timeoutTransacaoPadrao  = 10 * time.Second
+	timeoutTransacaoReserva = 16 * time.Second
 )
 
 type Transacoes struct {
@@ -22,34 +27,112 @@ type Transacoes struct {
 		caso um motorista cancele a viagem durante a transacao de reserva
 	*/
 	TransacaoDoTrecho map[TrechoChaves]string
+
+	// Timers ativos de timeout de cada transacao
+	Timers map[string]*time.Timer
 }
 
 func InicializarTransacoes() *Transacoes {
 	return &Transacoes{
 		TrechosDaTransacao: make(map[string][]TrechoChaves),
 		TransacaoDoTrecho:  make(map[TrechoChaves]string),
+		Timers:             make(map[string]*time.Timer),
 	}
 }
 
-//funções da api rest para comunicação entre servidores
+// Trava os trechos da transação e agenda o timeout caso o coordenador caia
+func (t *Transacoes) TravarComTimeout(transacaoID string, chaves []TrechoChaves, ttl time.Duration) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 
-type PacoteHttp struct {
-	Trechos     []TrechoData `json:"trechos,omitempty"`
-	TransacaoID string       `json:"transacaoid,omitempty"`
-	Reserva     ReservaChave `json:"passageiro,omitempty"`
+	t.TrechosDaTransacao[transacaoID] = chaves
+	for _, tc := range chaves {
+		t.TransacaoDoTrecho[tc] = transacaoID
+	}
 
-	Reservas  []ReservaChave `json:"reservas,omitempty"`
-	Motorista string         `json:"motorista,omitempty"`
+	if timer, ok := t.Timers[transacaoID]; ok {
+		timer.Stop()
+	}
 
-	Voto bool `json:"voto,omitempty"`
-
-	Timestamp Timestamp `json:"timestamp"`
+	t.Timers[transacaoID] = time.AfterFunc(ttl, func() {
+		t.AbortarPorTimeout(transacaoID)
+	})
 }
+
+// Chamado automaticamente quando o timer expira sem decisão do coordenador
+func (t *Transacoes) AbortarPorTimeout(transacaoID string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	chaves, existe := t.TrechosDaTransacao[transacaoID]
+	if !existe {
+		return // Já foi commitada ou abortada antes do timeout disparar
+	}
+
+	delete(t.Timers, transacaoID)
+	for _, tc := range chaves {
+		delete(t.TransacaoDoTrecho, tc)
+	}
+	delete(t.TrechosDaTransacao, transacaoID)
+
+	log.Printf("[TIMEOUT 2PC] Transação %s expirou! Travas liberadas automaticamente.", transacaoID)
+
+	// WAL PARTICIPANTE: abort por timeout — na próxima startup não tentaremos commitar
+	go GravarWALParticipante(EntradaWALParticipante{
+		Tipo: "ABORTED",
+		TxID: transacaoID,
+	})
+
+	// remove de pendentesCommit se por algum motivo ainda estiver lá
+	pendentesCommit.mu.Lock()
+	delete(pendentesCommit.txs, transacaoID)
+	pendentesCommit.mu.Unlock()
+}
+
+// Libera as travas no Commit ou Abort e cancela o timer associado
+func (t *Transacoes) Liberar(transacaoID string) ([]TrechoChaves, bool) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	chaves, existe := t.TrechosDaTransacao[transacaoID]
+	if !existe {
+		return nil, false
+	}
+
+	if timer, ok := t.Timers[transacaoID]; ok {
+		timer.Stop()
+		delete(t.Timers, transacaoID)
+	}
+
+	for _, tc := range chaves {
+		delete(t.TransacaoDoTrecho, tc)
+	}
+	delete(t.TrechosDaTransacao, transacaoID)
+
+	return chaves, true
+}
+
+//funções da api rest para comunicação entre servidores
 
 var (
 	// cliente HTTP para fazer requisições com timeout
 	cliente *http.Client
 )
+
+// cria o cliente HTTP usado nas chamadas entre servidores.
+// rodar antes de RecuperarWAL/RecuperarWALParticipante pq recovery
+// envia aborts e commits Depende de relogioDeLamport inicializado
+func InicializarClienteHTTP() {
+	if cliente != nil {
+		return
+	}
+	//ao enviar requisição, espera por 200 milissegundos
+	//não havendo resposta retorna erro
+	cliente = &http.Client{
+		Timeout:   200 * time.Millisecond,
+		Transport: relogioDeLamport.Transporte(http.DefaultTransport),
+	}
+}
 
 func IniciarServidorREST() {
 	mux := http.NewServeMux()
@@ -65,31 +148,29 @@ func IniciarServidorREST() {
 	mux.HandleFunc("POST /viagem/cancelar/commit", handlePostViagemCancelarCommit)
 	mux.HandleFunc("POST /viagem/cancelar/abort", handlePostViagemCancelarAbort)
 
-	//ao enviar requisição, espera por 200 milissegundos
-	//não havendo resposta retorna erro
-	cliente = &http.Client{
-		Timeout:   200 * time.Millisecond,
-		Transport: transporteRelogio{base: http.DefaultTransport},
-	}
+	InicializarClienteHTTP()
 
+	//inicia o escalonador do relogio logico
+	//é uma goroutine que roda a cada 20milisegundos para processar a fila
 	IniciarEscalonador()
 
 	go func() {
-		enderecoPorta := ":" + portas[1]
+		enderecoPorta := ":" + cfg.PortaHTTP
 
-		log.Printf("##### Servidor [REST] instância '%d' a iniciar na porta %s... #####\n", servidor, enderecoPorta)
+		log.Printf("##### Servidor [REST] instância '%d' a iniciar na porta %s... #####\n", cfg.ServidorID, enderecoPorta)
 
 		go func() {
 			time.Sleep(3 * time.Second)
 		}()
 
 		//bloqueante
-		if err := http.ListenAndServe(enderecoPorta, comRelogio(mux)); err != nil {
+		if err := http.ListenAndServe(enderecoPorta, relogioDeLamport.Middleware(mux)); err != nil {
 			log.Fatalf("Erro no servidor REST: %v", err)
 		}
 	}()
 }
 
+// receb o comando de um servidor que pediu as adjacencias de uma cidade e retorna a lista
 func handleGetAdjacencias(w http.ResponseWriter, r *http.Request) {
 
 	cidade := r.PathValue("cidade")
@@ -110,7 +191,7 @@ func handleGetAdjacencias(w http.ResponseWriter, r *http.Request) {
 // get apenas por agora
 func ComandoParaServidor(comando string, mensagem string, Destinatario int) (*PacoteHttp, error) {
 
-	url := GetURLHTTP(Destinatario) + comando + mensagem
+	url := cfg.URLHTTP(Destinatario) + comando + mensagem
 
 	log.Printf("\n url: %s", url)
 
@@ -128,4 +209,25 @@ func ComandoParaServidor(comando string, mensagem string, Destinatario int) (*Pa
 		return nil, err
 	}
 	return &resposta, nil
+}
+
+// desativa o timer de timeout para não abortar durante o commit,
+// matem os trechos travados em TransacaoDoTrecho
+// assim as vagas do trecho não modificadas enquanto se verfica se o timer expirou ou não
+func (t *Transacoes) IniciarCommit(transacaoID string) ([]TrechoChaves, bool) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	chaves, existe := t.TrechosDaTransacao[transacaoID]
+	if !existe {
+		return nil, false
+	}
+
+	// cancela o timer para não expirar enquanto altera o dado
+	if timer, ok := t.Timers[transacaoID]; ok {
+		timer.Stop()
+		delete(t.Timers, transacaoID)
+	}
+
+	return chaves, true
 }

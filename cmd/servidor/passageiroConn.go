@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	. "vaijunto/cmd/servidor/relogioLogico"
 	. "vaijunto/shared"
 )
 
@@ -38,7 +39,7 @@ func PassageiroConn(encoder *json.Encoder, decoder *json.Decoder, user string) {
 					break
 				}
 
-				ts := relogio.Carimbo()
+				ts := relogioDeLamport.Carimbo()
 				err := loopEscolhareserva(itinerarios, user, encoder, decoder, &req, &res, ts)
 				if err != nil {
 					break //esse break é inutil kk
@@ -133,9 +134,11 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 	for _, i := range itinerarios {
 		var trecho_preparado ViagemData
 
-		transacaoID, disponivel := ReservaPrepare(i, ts) //mudança necessaria para trechos entre servidores
+		// Garante que os servidores participantes sejam deduzidos diretamente dos trechos
+		servidoresParticipantes := i.ObterServidoresParticipantes()
+		i.Servidores = servidoresParticipantes
 
-		servidoresParticipantes := i.Servidores
+		transacaoID, disponivel := ReservaPrepare(i, ts) //mudança necessaria para trechos entre servidores
 
 		log.Printf("[PASS CON ESCOLHA RESERVA] servidores participantes: %v", servidoresParticipantes)
 
@@ -143,6 +146,14 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 			ReservaAbort(transacaoID, servidoresParticipantes)
 			continue
 		}
+
+		GravarWAL(EntradaWAL{
+			Tipo:       WALPrepared,
+			TxID:       transacaoID,
+			Passageiro: user,
+			Servidores: servidoresParticipantes,
+			Viagem:     i,
+		})
 
 		log.Printf("Ola esperando usuario decidir sobre rota preparada")
 
@@ -155,6 +166,7 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 		}
 		if err := encoder.Encode(res); err != nil {
 			ReservaAbort(transacaoID, servidoresParticipantes)
+			GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
 			log.Printf("Erro ao enviar resposta: %v. Operação cancelada", err)
 			return err
 		}
@@ -164,6 +176,7 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 		err := decoder.Decode(req)
 		if err != nil {
 			ReservaAbort(transacaoID, servidoresParticipantes)
+			GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
 			log.Printf("Operação cancelada. Conexão do passagerio '%s' encerrada, durante escolha da reserva: %v", user, err)
 			return err
 		}
@@ -175,20 +188,42 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 				//o id da viagem eh adicionado aqui
 				i.ID = transacaoID
 
-				//necessita tratamento para queda de servidor aqui...
-				ReservasPass.mu.Lock()
-				ReservasPass.Reservas[user][i.ID] = i
-				ReservasPass.mu.Unlock()
+				GravarWAL(EntradaWAL{
+					Tipo:       WALCommitted,
+					TxID:       transacaoID,
+					Passageiro: user,
+					Servidores: servidoresParticipantes,
+					Viagem:     i,
+				})
 
-				ReservaCommit(transacaoID, user, servidoresParticipantes)
+				aceito, completo := ReservaCommit(transacaoID, user, servidoresParticipantes)
+
+				if aceito {
+					ReservasPass.mu.Lock()
+					if ReservasPass.Reservas[user] == nil {
+						ReservasPass.Reservas[user] = InicializarReservasByUser()
+					}
+					ReservasPass.Reservas[user][i.ID] = i
+					ReservasPass.mu.Unlock()
+					log.Printf("Reserva de id %s realizada com sucesso para o passageiro '%s' (completo=%t)", i.ID, user, completo)
+
+					msg := "Itinerário reservado com sucesso!"
+					if !completo {
+						msg = "Itinerário reservado! A confirmação em alguns servidores será concluída automaticamente em segundo plano."
+					}
+					*res = Resposta{
+						Status:  "SUCESSO",
+						Message: msg,
+					}
+				} else {
+					log.Printf("Reserva de id %s recusada para o passageiro '%s'", i.ID, user)
+					*res = Resposta{
+						Status:  "FALHA",
+						Message: "Não foi possível reservar o itinerário.",
+					}
+				}
 
 				encerrar_loop = true
-
-				log.Printf("Reserva de id %s realizada com sucesso para o passageiro '%s'", i.ID, user)
-				*res = Resposta{
-					Status:  "SUCESSO",
-					Message: "Itinerário reservado com sucesso!",
-				}
 
 			}
 		case "PROXIMA_ROTA":
@@ -196,11 +231,13 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 				//A resposta ao ciente será dada na proxima iteração do loop
 				// ja com a proxima rota indexada
 				ReservaAbort(transacaoID, servidoresParticipantes)
+				GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
 			}
 		case "CANCELAR":
 			{
 				encerrar_loop = true
 				ReservaAbort(transacaoID, servidoresParticipantes)
+				GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
 				*res = Resposta{
 					Status:  "SUCESSO",
 					Message: "Operação Cancelada",
@@ -209,6 +246,7 @@ func loopEscolhareserva(itinerarios []*ViagemData, user string, encoder *json.En
 		default:
 			encerrar_loop = true
 			ReservaAbort(transacaoID, servidoresParticipantes)
+			GravarWAL(EntradaWAL{Tipo: WALDone, TxID: transacaoID})
 			*res = Resposta{
 				Status:  "ERRO",
 				Message: fmt.Sprintf("Acao não reconhecida: '%s' . Operação Cancelada", req.Acao),

@@ -9,6 +9,8 @@ import (
 
 	"github.com/google/uuid"
 
+	. "vaijunto/cmd/servidor/protocoloREST"
+	. "vaijunto/cmd/servidor/relogioLogico"
 	. "vaijunto/shared"
 )
 
@@ -49,11 +51,14 @@ func ReservaPrepare(viagemData *ViagemData, ts Timestamp) (string, bool) {
 	log.Printf("[RESERVA PREPARE] 5, requisicoes: %d", requisicoes)
 
 	var wg sync.WaitGroup
+	log.Printf("[RESERVA PREPARE] 6")
 
 	//++[ ENVIO DE PREPARE ]++
 	votos := make(chan bool, requisicoes)
+	log.Printf("[RESERVA PREPARE] 7")
 
-	for i, url := range urlsDosServidores {
+	for i, url := range cfg.GetUrls() {
+		log.Printf("[RESERVA PREPARE] 8.%d", i)
 
 		var req PacoteHttp
 		req.TransacaoID = transacaoID
@@ -72,17 +77,20 @@ func ReservaPrepare(viagemData *ViagemData, ts Timestamp) (string, bool) {
 		if req.Trechos == nil {
 			continue
 		}
+		log.Printf("[RESERVA PREPARE] 9.%d", i)
 
 		wg.Add(1)
 
 		go func(url string, req PacoteHttp) {
+			log.Printf("[RESERVA PREPARE] 10")
+
 			defer wg.Done()
 
 			body, _ := json.Marshal(req)
 
 			respostaHttp, err := cliente.Post(url+"/reserva/prepare", "application/json", bytes.NewBuffer(body))
 			if err != nil || respostaHttp.StatusCode != http.StatusOK {
-				log.Printf("[RESERVA PREPARE] 6, erro: %v", err)
+				log.Printf("[RESERVA PREPARE] 11, erro: %v", err)
 				votos <- false //se deu erro, voto é não, cancela tudo
 				return
 			}
@@ -105,7 +113,7 @@ func ReservaPrepare(viagemData *ViagemData, ts Timestamp) (string, bool) {
 		}
 	}
 
-	log.Printf("[RESERVA PREPARE] 7, commit: %t", commit)
+	log.Printf("[RESERVA PREPARE] 12, commit: %t", commit)
 
 	return transacaoID, commit
 

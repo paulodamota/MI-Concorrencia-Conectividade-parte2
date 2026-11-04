@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"os"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
+
+	"vaijunto/cmd/servidor/config"
+	"vaijunto/cmd/servidor/relogioLogico"
+
 	. "vaijunto/shared"
 )
 
@@ -27,105 +28,41 @@ var (
 	//estrutura com mutex e mapa de reservas
 	ReservasPass = NovoReservas()
 
-	//identificador desse servidor
-	servidor int
-	//endereço IP dos outros servidores, precisa ser substituido por um pra cada servidor!
-	endereco1 string
-	endereco2 string
-	endereco3 string
-	//portas desse servidor, [0]: porta TCP; [1]: porta HTTP
-	portas []string
-
 	transacoes = InicializarTransacoes()
-
-	//urls dos Servidores
-	urlsDosServidores []string
 )
 
-func GetPorta(serv int) []string {
-	switch serv {
-	//primeira porta para socket tcp (comunicação com clientes usuarios)
-	//segunda porta para http
-	case 1: //sergipe
-		return []string{"2800", "2828"}
-	case 2: //bahia
-		return []string{"2900", "2929"}
-	case 3: //minas gerais
-		return []string{"3100", "3131"}
-	default:
-		return nil
-	}
-}
-
-var tabelaVizinhos = [][]int{
-	{},        // Índice 0 (ignorado)
-	{0, 2, 3}, // Servidor 1 -> vizinho 1 retorna 2, vizinho 2 retorna 3
-	{0, 3, 1}, // Servidor 2 -> vizinho 1 retorna 3, vizinho 2 retorna 1
-	{0, 2, 1}, // Servidor 3 -> vizinho 1 retorna 2, vizinho 2 retorna 1
-}
-
-func GetVizinho(vizinho int) int {
-	if servidor <= 0 || servidor >= len(tabelaVizinhos) {
-		return 0
-	}
-	if vizinho <= 0 || vizinho >= len(tabelaVizinhos[servidor]) {
-		return 0
-	}
-
-	return tabelaVizinhos[servidor][vizinho]
-}
-
-func GetURLHTTP(serv int) string {
-	switch serv {
-	case 1: //sergipe
-		return "http://" + endereco1 + ":" + GetPorta(serv)[1]
-	case 2: //bahia
-		return "http://" + endereco2 + ":" + GetPorta(serv)[1]
-	case 3: //minas gerais
-		return "http://" + endereco3 + ":" + GetPorta(serv)[1]
-	default:
-		return ""
-	}
-}
+// variaveis globais temporarias enquanto refatoro tudo
+var (
+	cfg              *config.Config
+	relogioDeLamport *relogioLogico.RelogioLogico
+)
 
 func main() {
 	var err error
-	servidor, err = strconv.Atoi(strings.TrimSpace(os.Getenv("servidor")))
-	if err != nil || servidor == 0 {
-		fmt.Print("\nPorta de servidor não especificada!\n")
+
+	//ler ip e id do servidor
+	cfg, err = config.LerConfig()
+	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
-	endereco1 = os.Getenv("endereco1")
-	if endereco1 == "" {
-		fmt.Print("\nEndereco ip 1 não especificado!\n")
-		return
-	}
-	endereco2 = os.Getenv("endereco2")
-	if endereco2 == "" {
-		fmt.Print("\nEndereco ip 2 não especificado!\n")
-		return
-	}
-	endereco3 = os.Getenv("endereco3")
-	if endereco3 == "" {
-		fmt.Print("\nEndereco ip 3 não especificado!\n")
-		return
-	}
+	//
+	relogioDeLamport = relogioLogico.New(cfg.ServidorID)
 
-	urlsDosServidores = []string{
-		GetURLHTTP(1),
-		GetURLHTTP(2),
-		GetURLHTTP(3),
-	}
-
-	portas = GetPorta(servidor)
-	if portas == nil {
-		fmt.Print("\nPorta inválida!\n")
-		return
-	}
+	InicializarClienteHTTP()
 
 	//carrega os dados salvos
 	Carregar()
+
+	//configura para salvar os logs em arquivos (antes do WAL para que o recovery seja registrado)
+	ConfigurarLogs()
+
+	//inicializa o log de transações (WAL) e recupera transações pendentes do crash anterior
+	InicializarWAL()
+	RecuperarWAL()
+	InicializarWALParticipante()
+	RecuperarWALParticipante()
 
 	//salva dados de tempos em tempos
 	go func() {
@@ -136,12 +73,9 @@ func main() {
 		}
 	}()
 
-	//configura para salvar os logs em arquivos
-	ConfigurarLogs()
-
 	IniciarServidorREST()
 	//configurando a conexão de usuário
-	port := "0.0.0.0:" + portas[0]
+	port := "0.0.0.0:" + cfg.PortaTCP
 	listener, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("Erro ao iniciar servidor TCP: %v", err)

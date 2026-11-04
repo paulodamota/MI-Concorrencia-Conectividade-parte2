@@ -1,91 +1,16 @@
 package main
 
 import (
-	"net/http"
 	"sort"
-	"strconv"
 	"sync"
 	"time"
+
+	. "vaijunto/cmd/servidor/relogioLogico"
 )
 
-type RelogioLamport struct {
-	mu    sync.Mutex
-	tempo int64
-}
-
-var relogio = &RelogioLamport{}
-
-// evento local / envio
-func (r *RelogioLamport) Evento() int64 {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.tempo++
-	return r.tempo
-}
-
-// recebimento de mensagem com o carimbo t
-func (r *RelogioLamport) Receber(t int64) int64 {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if t > r.tempo {
-		r.tempo = t
-	}
-	r.tempo++
-	return r.tempo
-}
-
-/*
-carimbo de uma requisição de usuário. É criado UMA vez, no servidor que recebeu
-a requisição do cliente, e viaja junto com a transação até os participantes.
-*/
-type Timestamp struct {
-	Tempo    int64 `json:"tempo"`
-	Servidor int   `json:"servidor"`
-}
-
-func (r *RelogioLamport) Carimbo() Timestamp {
-	return Timestamp{Tempo: r.Evento(), Servidor: servidor}
-}
-
-// true se a vem antes de b na ordem total
-func (a Timestamp) Antes(b Timestamp) bool {
-	if a.Tempo != b.Tempo {
-		return a.Tempo < b.Tempo
-	}
-	return a.Servidor < b.Servidor
-}
-
-// cliente: carimba toda requisição enviada e atualiza o relógio com a resposta
-type transporteRelogio struct{ base http.RoundTripper }
-
-func (t transporteRelogio) RoundTrip(req *http.Request) (*http.Response, error) {
-	req = req.Clone(req.Context()) //RoundTripper não deve alterar a requisição original
-	req.Header.Set("X-Relogio", strconv.FormatInt(relogio.Evento(), 10))
-
-	resp, err := t.base.RoundTrip(req)
-	if err == nil {
-		if v, e := strconv.ParseInt(resp.Header.Get("X-Relogio"), 10, 64); e == nil {
-			relogio.Receber(v)
-		}
-	}
-	return resp, err
-}
-
-// servidor: atualiza o relógio ao receber e devolve o valor no header da resposta
-func comRelogio(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var t int64
-		if v, err := strconv.ParseInt(r.Header.Get("X-Relogio"), 10, 64); err == nil {
-			t = v
-		}
-		w.Header().Set("X-Relogio", strconv.FormatInt(relogio.Receber(t), 10))
-		next.ServeHTTP(w, r)
-	})
-}
-
 const (
-	janelaOrdenacao = 50 * time.Millisecond  // assume que o atraso de rede entre servidores é menor que isso
-	esperaMaxima    = 130 * time.Millisecond // menor que o timeout de 2s do cliente HTTP
+	janelaOrdenacao = 50 * time.Millisecond
+	esperaMaxima    = 130 * time.Millisecond
 )
 
 type pedidoReserva struct {
@@ -93,7 +18,7 @@ type pedidoReserva struct {
 	id        string // ID da transação
 	chaves    []TrechoChaves
 	chegada   time.Time
-	resultado chan bool // true = concedido (locks já aplicados), false = negado
+	resultado chan bool // true concedido locks já aplicados, false negado
 }
 
 var fila = struct {
@@ -124,7 +49,6 @@ func removerDaFila(p *pedidoReserva) {
 }
 
 // percorre a fila em ordem de timestamp e concede o que for possível
-// escalonador
 func processarFila() {
 	fila.mu.Lock()
 	defer fila.mu.Unlock()
@@ -158,36 +82,37 @@ func processarFila() {
 	fila.pedidos = esperando
 }
 
-// decidido=false: trecho ocupado, continua esperando
+// decidido é false quando o trecho está ocupado, continua esperando
 func tentarConceder(p *pedidoReserva) (concedido bool, decidido bool) {
 	transacoes.mu.Lock()
-	defer transacoes.mu.Unlock()
 
+	//se o trecho está em outra transação, não concede e mantem esperando na fila
 	for _, tc := range p.chaves {
 		if _, ocupado := transacoes.TransacaoDoTrecho[tc]; ocupado {
+			transacoes.mu.Unlock()
 			return false, false
 		}
 	}
+	transacoes.mu.Unlock()
 
-	//viagem removida ou sem vagas: NÃO definitivo
+	//viagem removida ou sem vagas, não concede e remove da fila, cancela o pedido
 	if !temVaga(p.chaves) {
 		return false, true
 	}
 
-	transacoes.TrechosDaTransacao[p.id] = p.chaves
-	for _, tc := range p.chaves {
-		transacoes.TransacaoDoTrecho[tc] = p.id
-	}
+	//se chega aqui é pq ta livre e tem vaga, aplica trava com timeout
+	transacoes.TravarComTimeout(p.id, p.chaves, timeoutTransacaoReserva)
 	return true, true
 }
 
 func temVaga(chaves []TrechoChaves) bool {
+
 	for _, tc := range chaves {
 		ViagensMoto.mu.Lock()
 		viagem, ok := ViagensMoto.Viagens[tc.UserName][tc.ViagemID]
 		ViagensMoto.mu.Unlock()
 		if !ok {
-			return false
+			return false //se não existe
 		}
 
 		viagem.mu.Lock()
@@ -201,7 +126,7 @@ func temVaga(chaves []TrechoChaves) bool {
 			t.mu.Unlock()
 			if vagas <= 0 {
 				viagem.mu.Unlock()
-				return false
+				return false //achou mas n tem vagas
 			}
 			achou = true
 			break
@@ -212,7 +137,7 @@ func temVaga(chaves []TrechoChaves) bool {
 			return false
 		}
 	}
-	return true
+	return true //achou e tem vagas
 }
 
 func possuiTrechoEmComum(a, b []TrechoChaves) bool {
@@ -226,7 +151,6 @@ func possuiTrechoEmComum(a, b []TrechoChaves) bool {
 	return false
 }
 
-// chamar uma vez no main (ou dentro de IniciarServidorREST)
 func IniciarEscalonador() {
 	go func() {
 		for {

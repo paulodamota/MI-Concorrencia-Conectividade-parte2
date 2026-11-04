@@ -62,6 +62,18 @@ type ViagemData struct {
 	Servidores []bool       `json:"servidores"` //campo temporario usado para rastrear quais servidores estão envolvidos na reservar durante a busca no grafo
 }
 
+// ObterServidoresParticipantes deduz os servidores participantes a partir dos trechos da viagem,
+// sem depender do slice temporário da busca no grafo (que pode sofrer com backtracking).
+func (v *ViagemData) ObterServidoresParticipantes() []bool {
+	servs := make([]bool, 3)
+	for _, t := range v.Trechos {
+		if t.Servidor >= 1 && t.Servidor <= 3 {
+			servs[t.Servidor-1] = true
+		}
+	}
+	return servs
+}
+
 func GetCidade(estado string, numero int) string {
 	switch estado {
 	case "BA":
@@ -205,11 +217,10 @@ func ImprimirViagens(viagens []ViagemData) {
 }
 
 func ImprimirReservas(viagens []ViagemData) {
-	fmt.Println("======================== RESUMO DE RESERVAS ========================")
+	fmt.Println("======================= RESUMO DE RESERVAS =======================")
 
 	for h, viagem := range viagens {
 		fmt.Printf("Reserva #%d:\n", h+1)
-		fmt.Printf("\tDono : %s\n", viagem.Dono)
 		fmt.Printf("\tID da reserva: %s\n", viagem.ID)
 		fmt.Printf("\n\tTotal de Trechos: %d\n", len(viagem.Trechos))
 
@@ -238,12 +249,10 @@ func ImprimirReservasEscolha(viagens []ViagemData) {
 
 	for h, viagem := range viagens {
 		fmt.Printf("Reserva #%d:\n", h+1)
-		fmt.Printf("\tDono : %s\n", viagem.Dono)
-		fmt.Printf("\tID da reserva: %s\n", viagem.ID)
 		fmt.Printf("\n\tTotal de Trechos: %d\n", len(viagem.Trechos))
 
 		if len(viagem.Trechos) > 0 {
-			fmt.Println("\tDetalhes dos Trechos:")
+			fmt.Println("\n\tDetalhes dos Trechos:")
 			for i, trecho := range viagem.Trechos {
 				fmt.Printf("\n")
 				fmt.Printf("\tTrecho #%d:\n", i)
