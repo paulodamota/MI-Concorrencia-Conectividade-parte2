@@ -12,25 +12,17 @@ import (
 	. "vaijunto/shared"
 )
 
-// ---------------------------------------------------------------------------
-// WAL do COORDENADOR — registra a decisão de 2PC para reservas de passageiro
-// ---------------------------------------------------------------------------
-
-// TipoWAL representa o estado de uma transação no log
+// estados da transacao no log do coordenador
 type TipoWAL string
 
 const (
-	// WALPrepared: prepare OK, aguardando decisão do usuário (abortar em recovery)
-	WALPrepared TipoWAL = "PREPARED"
-	// WALCommitted: decisão tomada (ponto de não-retorno), reenviar commits em recovery
-	WALCommitted TipoWAL = "COMMITTED"
-	// WALDone: todos confirmaram ou foi abortado, entrada pode ser ignorada
-	WALDone TipoWAL = "DONE"
-	// WALAck: um participante (campo Servidor, 1-based) confirmou o commit.
-	// No recovery, só os participantes SEM ack recebem o commit de novo.
-	WALAck TipoWAL = "ACK"
+	WALPrepared  TipoWAL = "PREPARED"  // prepare ok, esperando o passageiro responder
+	WALCommitted TipoWAL = "COMMITTED" // passageiro confirmou, vai commitar
+	WALDone      TipoWAL = "DONE"      // terminou tudo ou cancelou, pode ignorar
+	WALAck       TipoWAL = "ACK"       // servidor especifico confirmou o commit
 )
 
+// caminho do arquivo wal do coordenador por servidor
 func caminhoWAL() string {
 	if cfg != nil && cfg.ServidorID > 0 {
 		return fmt.Sprintf("dados/wal_reservas_srv%d.jsonl", cfg.ServidorID)
@@ -38,24 +30,23 @@ func caminhoWAL() string {
 	return "dados/wal_reservas.jsonl"
 }
 
-// EntradaWAL representa uma linha do log de transações
+// dados de cada linha salva no log
 type EntradaWAL struct {
 	Tipo       TipoWAL     `json:"tipo"`
 	TxID       string      `json:"tx_id"`
 	Passageiro string      `json:"passageiro,omitempty"`
 	Servidores []bool      `json:"servidores,omitempty"`
 	Viagem     *ViagemData `json:"viagem,omitempty"`
-	Servidor   int         `json:"servidor,omitempty"` // usado em WALAck (1-based)
+	Servidor   int         `json:"servidor,omitempty"` // id do servidor que deu ack (1, 2 ou 3)
 	Timestamp  time.Time   `json:"timestamp"`
 }
 
 var walMu sync.Mutex
 var walArquivo *os.File
 
-// InicializarWAL abre (ou cria) o arquivo de log em modo append.
-// Deve ser chamado uma vez na inicialização, antes de RecuperarWAL.
+// abre ou cria o arquivo de log do coordenador
 func InicializarWAL() {
-	// garante que o diretório existe (pode ser a primeira execução)
+	// cria pasta dados se nao existir
 	if err := os.MkdirAll("dados", 0755); err != nil {
 		log.Fatalf("[WAL] Falha ao criar diretório de dados: %v", err)
 	}
@@ -69,7 +60,7 @@ func InicializarWAL() {
 	log.Println("[WAL] Log de transações inicializado:", caminho)
 }
 
-// GravarWAL acrescenta uma entrada ao log e faz fsync para garantir durabilidade.
+// escreve no log e forca salvar no disco
 func GravarWAL(entrada EntradaWAL) {
 	entrada.Timestamp = time.Now()
 	linha, err := json.Marshal(entrada)
@@ -89,30 +80,28 @@ func GravarWAL(entrada EntradaWAL) {
 		log.Printf("[WAL] Erro ao gravar no log: %v", err)
 		return
 	}
-	// fsync: garante que está em disco antes de continuar
+	// sync pra garantir que foi pro disco
 	if err = walArquivo.Sync(); err != nil {
 		log.Printf("[WAL] Erro no fsync do log: %v", err)
 	}
 }
 
-// RecuperarWAL lê o log após um reinício e retoma transações incompletas.
-// Deve ser chamado depois de InicializarWAL e antes de IniciarServidorREST.
+// le o log pra recuperar transacoes pendentes apos reiniciar
 func RecuperarWAL() {
 	caminho := caminhoWAL()
 	f, err := os.Open(caminho)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return // arquivo não existe ainda, sem recovery necessário
+			return
 		}
 		log.Printf("[WAL] Erro ao abrir log para recovery: %v", err)
 		return
 	}
 	defer f.Close()
 
-	// reconstrói o estado de cada transação lendo o log linha a linha
-	// PREPARED é sobrescrito por COMMITTED; DONE remove a entrada
+	// reconstroi o estado lendo linha por linha
 	estados := make(map[string]EntradaWAL)
-	acks := make(map[string]map[int]bool) // tx -> servidores que já confirmaram
+	acks := make(map[string]map[int]bool) // quais servidores ja confirmaram commit dessa tx
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
@@ -125,7 +114,6 @@ func RecuperarWAL() {
 		case WALPrepared:
 			estados[e.TxID] = e
 		case WALCommitted:
-			// a entrada COMMITTED já carrega passageiro, servidores e viagem
 			estados[e.TxID] = e
 		case WALAck:
 			if acks[e.TxID] == nil {
@@ -151,33 +139,30 @@ func RecuperarWAL() {
 	for _, e := range estados {
 		switch e.Tipo {
 		case WALPrepared:
-			// coordenador caiu enquanto esperava decisão do usuário → abortar
+			// caiu antes do passageiro confirmar, entao aborta
 			log.Printf("[WAL RECOVERY] Abortando tx %s (estava em PREPARED — nenhuma decisão tomada)", e.TxID)
 			ReservaAbort(e.TxID, e.Servidores)
 			GravarWAL(EntradaWAL{Tipo: WALDone, TxID: e.TxID})
 
 		case WALCommitted:
-			// coordenador caiu após decidir COMMIT → reenviar commits aos participantes
+			// ja tinha decidido commitar, reenvia commit pros servidores que faltam
 			log.Printf("[WAL RECOVERY] Reenviando commits da tx %s (estava em COMMITTED)", e.TxID)
-			entrada := e // cópia local para a goroutine
+			entrada := e
 
-			// pendentes = participantes da tx que ainda NÃO deram ack
+			// filtra so os servidores que ainda nao confirmaram
 			pendentes := make([]bool, len(entrada.Servidores))
 			for i, participa := range entrada.Servidores {
 				pendentes[i] = participa && !acks[entrada.TxID][i+1]
 			}
 
-			// o delay de 3s (servidor REST subir) é o atraso inicial do retry
 			go recuperarCommit(entrada, pendentes)
 		}
 	}
 }
 
-// recuperarCommit retoma uma transação cuja decisão (COMMITTED) foi gravada mas
-// não concluída. A decisão é irrevogável: restaura a reserva localmente e entra
-// em retry persistente até todos os participantes pendentes confirmarem.
+// recupera transacao que ja tinha commit decidido
 func recuperarCommit(e EntradaWAL, pendentes []bool) {
-	// garante que a reserva está registrada localmente (idempotente)
+	// restaura a reserva local se ainda nao tiver
 	if e.Viagem != nil {
 		ReservasPass.mu.Lock()
 		if ReservasPass.Reservas[e.Passageiro] == nil {
@@ -192,18 +177,12 @@ func recuperarCommit(e EntradaWAL, pendentes []bool) {
 		ReservasPass.mu.Unlock()
 	}
 
-	// bloqueia até concluir (grava DONE ao final). Atraso inicial: esperar o REST subir.
+	// fica tentando ate todos confirmarem (espera 3s pro rest subir)
 	retryPersistente(e.TxID, e.Passageiro, pendentes, 3*time.Second)
 	log.Printf("[WAL RECOVERY] Tx %s concluída com sucesso no recovery.", e.TxID)
 }
 
-// ---------------------------------------------------------------------------
-// WAL do PARTICIPANTE — registra o estado do prepare local para sobreviver a crashes
-// ---------------------------------------------------------------------------
-
-// Arquivo append-only com uma entrada JSON por linha.
-// Permite que o participante reaplique commits recebidos após um reinício,
-// mesmo que a trava em memória (transacoes) já tenha expirado.
+// log do participante pra nao perder trechos preparados se reiniciar
 func caminhoWALParticipante() string {
 	if cfg != nil && cfg.ServidorID > 0 {
 		return fmt.Sprintf("dados/wal_participante_srv%d.jsonl", cfg.ServidorID)
@@ -211,13 +190,10 @@ func caminhoWALParticipante() string {
 	return "dados/wal_participante.jsonl"
 }
 
-// EntradaWALParticipante é uma linha no log do participante.
 type EntradaWALParticipante struct {
-	// "PREPARED" | "COMMITTED" | "ABORTED"
-	Tipo string `json:"tipo"`
-	TxID string `json:"tx_id"`
-	// Chaves só é preenchido no PREPARED; é o que precisamos para decrementar Vagas
-	Chaves    []TrechoChaves `json:"chaves,omitempty"`
+	Tipo      string         `json:"tipo"`
+	TxID      string         `json:"tx_id"`
+	Chaves    []TrechoChaves `json:"chaves,omitempty"` // trechos que foram travados
 	Timestamp time.Time      `json:"timestamp"`
 }
 
@@ -226,15 +202,13 @@ var (
 	walPartArquivo *os.File
 )
 
-// pendentesCommit guarda as chaves de trechos de transações que foram preparadas
-// mas cuja decisão de commit ainda não chegou (o coordenador pode ter caído).
-// Populado no recovery a partir do WAL do participante.
+// guarda os trechos preparados que ainda nao receberam commit
 var pendentesCommit = struct {
 	mu  sync.Mutex
 	txs map[string][]TrechoChaves
 }{txs: make(map[string][]TrechoChaves)}
 
-// InicializarWALParticipante abre o arquivo de log do participante em modo append.
+// abre o arquivo de log do participante
 func InicializarWALParticipante() {
 	caminho := caminhoWALParticipante()
 	var err error
@@ -245,7 +219,7 @@ func InicializarWALParticipante() {
 	log.Println("[WAL PART] Log do participante inicializado:", caminho)
 }
 
-// GravarWALParticipante acrescenta uma entrada ao log do participante com fsync.
+// salva acao do participante no log
 func GravarWALParticipante(entrada EntradaWALParticipante) {
 	entrada.Timestamp = time.Now()
 	linha, err := json.Marshal(entrada)
@@ -270,8 +244,7 @@ func GravarWALParticipante(entrada EntradaWALParticipante) {
 	}
 }
 
-// RecuperarWALParticipante lê o log do participante na startup e popula
-// pendentesCommit com as transações que foram preparadas mas não confirmadas.
+// le o log do participante pra recuperar trechos que tavam preparados
 func RecuperarWALParticipante() {
 	caminho := caminhoWALParticipante()
 	f, err := os.Open(caminho)
@@ -284,7 +257,6 @@ func RecuperarWALParticipante() {
 	}
 	defer f.Close()
 
-	// mapa txID → EntradaWALParticipante com tipo atual
 	estados := make(map[string]EntradaWALParticipante)
 
 	scanner := bufio.NewScanner(f)
@@ -299,8 +271,7 @@ func RecuperarWALParticipante() {
 			estados[e.TxID] = e
 		case "COMMITTED":
 			delete(estados, e.TxID)
-			// repopula a idempotência em memória: reenvio do coordenador após
-			// restart do participante recebe 200 em vez de 404 / dupla aplicação
+			// ja foi comitado antes, marca pra nao duplicar vaga se receber commit de novo
 			commitadas.mu.Lock()
 			commitadas.ids[e.TxID] = true
 			commitadas.mu.Unlock()
@@ -319,7 +290,7 @@ func RecuperarWALParticipante() {
 
 	log.Printf("[WAL PART] %d transação(ões) em PREPARED encontrada(s) — aguardando commit do coordenador.", len(estados))
 
-	// popula o mapa de pendentes para ser consultado pelo handlePostReservaCommit
+	// coloca no mapa de pendentes pro handlePostReservaCommit achar
 	pendentesCommit.mu.Lock()
 	for txID, e := range estados {
 		pendentesCommit.txs[txID] = e.Chaves
